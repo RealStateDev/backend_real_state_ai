@@ -1,6 +1,7 @@
 import Image from "next/image";
+import Link from 'next/link';
 
-export default function Dashboard() {
+export default function loginPage() {
     return (
         <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             {/* 
@@ -63,9 +64,9 @@ export default function Dashboard() {
 
                 <p className="text-center text-sm text-gray-500 mt-6">
                     ¿No tiene una cuenta?{' '}
-                    <a href="#" className="text-blue-600 hover:underline">
+                    <Link href="/registerPage" className="text-blue-600 hover:underline">
                         Registrarse
-                    </a>
+                    </Link>
                 </p>
             </div>
         </main>
