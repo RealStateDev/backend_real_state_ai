@@ -36,7 +36,7 @@ export default function HomePage() {
           <div className="w-64 bg-white p-6 border-r border-gray-200">
             <SidebarContent onOptionClick={handleSidebarOptionClick} onLogout={handleLogout} />
           </div>
-          <div className="flex-1 bg-black bg-opacity-25" onClick={handleMenuToggle} />
+          <div className="flex-1 bg-withe bg-opacity-25" onClick={handleMenuToggle} />
         </div>
       )}
 
