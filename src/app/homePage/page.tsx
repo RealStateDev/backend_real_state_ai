@@ -1,53 +1,47 @@
 "use client";
 import React, { useState } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch } from "react-icons/ci";
-import { FiMenu } from "react-icons/fi";
+import { FiMenu, FiLogOut } from "react-icons/fi";
+import { useRouter } from "next/navigation"; // 👈
 
 export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
+  const router = useRouter(); // 👈
 
   const handleMenuToggle = () => {
-    if (sidebarOpen) {
-      // Si ya está abierto, volver a la vista principal
-      setSidebarOpen(false);
-      setShowMainContent(true);
-    } else {
-      // Si está cerrado, abrir el sidebar
-      setSidebarOpen(true);
-      setShowMainContent(false);
-    }
+    setSidebarOpen(!sidebarOpen);
+    setShowMainContent(sidebarOpen); // toggle view
   };
 
   const handleSidebarOptionClick = () => {
-    // En mobile, cerrar sidebar y volver a vista principal
     setSidebarOpen(false);
     setShowMainContent(true);
   };
 
+  const handleLogout = () => {
+    router.push("/loginPage");
+  };
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
-      {/* Sidebar en desktop */}
+      {/* Sidebar desktop */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
-        <SidebarContent onOptionClick={() => {}} />
+        <SidebarContent onOptionClick={() => {}} onLogout={handleLogout} />
       </aside>
 
-      {/* Sidebar en mobile */}
+      {/* Sidebar mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
-            <SidebarContent onOptionClick={handleSidebarOptionClick} />
+            <SidebarContent onOptionClick={handleSidebarOptionClick} onLogout={handleLogout} />
           </div>
-          <div
-            className="flex-1 bg-black bg-opacity-25"
-            onClick={handleMenuToggle}
-          />
+          <div className="flex-1 bg-black bg-opacity-25" onClick={handleMenuToggle} />
         </div>
       )}
 
-      {/* Contenido principal */}
+      {/* Main */}
       <div className="flex-1 relative">
-        {/* Botón menú mobile */}
         <button
           onClick={handleMenuToggle}
           className="md:hidden absolute top-4 left-4 z-50"
@@ -55,17 +49,12 @@ export default function HomePage() {
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
-        {/* Vista principal (saludo y sugerencias) */}
         {showMainContent && (
           <main className="flex flex-col items-center justify-center text-center px-6 py-16">
             <div className="max-w-2xl">
               <h1 className="text-2xl font-semibold">👋 ¡Hola!</h1>
-              <h2 className="text-4xl font-bold mt-2">
-                ¿Qué tipo de propiedad buscás?
-              </h2>
-              <p className="text-gray-500 mt-2">
-                Estamos para ayudarte a encontrar tu nuevo hogar.
-              </p>
+              <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
+              <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                 {[
@@ -94,28 +83,33 @@ export default function HomePage() {
           </main>
         )}
       </div>
-      {/* Input de mensaje tipo chat */}
-<div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
-  <div className="max-w-2xl mx-auto flex items-center gap-2">
-    <input
-      type="text"
-      placeholder="¿Qué estás buscando?"
-      className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-    <button
-      type="button"
-      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-    >
-      Enviar
-    </button>
-  </div>
-</div>
 
+      {/* Input inferior */}
+      <div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
+        <div className="max-w-2xl mx-auto flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="¿Qué estás buscando?"
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            Enviar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
-
-function SidebarContent({ onOptionClick }: { onOptionClick: () => void }) {
+function SidebarContent({
+  onOptionClick,
+  onLogout,
+}: {
+  onOptionClick: () => void;
+  onLogout: () => void;
+}) {
   return (
     <div className="flex flex-col justify-between h-full">
       <div>
@@ -126,7 +120,10 @@ function SidebarContent({ onOptionClick }: { onOptionClick: () => void }) {
           <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
         </nav>
       </div>
-      <div className="mt-8">
+
+      {/* Logout */}
+      <div className="space-y-6">
+        <SidebarButton icon={<FiLogOut />} label="Salir" onClick={onLogout} />
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center font-semibold">
             N
@@ -140,7 +137,6 @@ function SidebarContent({ onOptionClick }: { onOptionClick: () => void }) {
     </div>
   );
 }
-
 function SidebarButton({
   icon,
   label,
