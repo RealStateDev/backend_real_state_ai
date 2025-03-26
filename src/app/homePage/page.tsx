@@ -94,6 +94,23 @@ export default function HomePage() {
           </main>
         )}
       </div>
+      {/* Input de mensaje tipo chat */}
+<div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
+  <div className="max-w-2xl mx-auto flex items-center gap-2">
+    <input
+      type="text"
+      placeholder="¿Qué estás buscando?"
+      className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      type="button"
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+    >
+      Enviar
+    </button>
+  </div>
+</div>
+
     </div>
   );
 }
