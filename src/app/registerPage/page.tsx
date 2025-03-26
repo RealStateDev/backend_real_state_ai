@@ -1,8 +1,25 @@
+"use client"; 
 import React from "react";
 import Link from 'next/link';
+import { useRouter } from "next/navigation";
+
+
 // import Image from "next/image";
 
+
 export default function registerPage() {
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // Podés agregar validaciones si querés
+    const email = e.currentTarget.email.value;
+    const password = e.currentTarget.password.value;
+
+    router.push("/homePage");
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       {/* 
@@ -21,7 +38,7 @@ export default function registerPage() {
         </div>
 
         {/* Formulario */}
-        <form>
+        <form onSubmit={handleSubmit}>
           {/* Campo Nombre */}
           <div className="mb-4">
             <label
