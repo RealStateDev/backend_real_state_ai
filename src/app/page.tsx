@@ -3,6 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button"
+import { FiSearch, FiClock, FiThumbsUp, FiStar } from "react-icons/fi";
+
 
 import Image from "next/image";
 
@@ -48,30 +50,49 @@ export default function LandingPage() {
 
       {/* Características */}
       <section id="features" className="bg-white py-20 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <h3 className="text-3xl font-semibold mb-12">Lo que puede hacer RealState AI</h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <h4 className="font-semibold text-lg text-blue-600">Búsqueda inteligente</h4>
-              <p className="text-sm text-gray-600 mt-2">
-                Utiliza lenguaje natural para encontrar propiedades según tus preferencias reales.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-lg text-blue-600">Asistencia 24/7</h4>
-              <p className="text-sm text-gray-600 mt-2">
-                Disponible siempre para responder consultas y asesorarte.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-lg text-blue-600">Resultados personalizados</h4>
-              <p className="text-sm text-gray-600 mt-2">
-                Propiedades recomendadas basadas en tu estilo de vida y necesidades.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+  <div className="max-w-6xl mx-auto text-center">
+    <h3 className="text-3xl font-semibold mb-12">Lo que puede hacer RealState AI</h3>
+    <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+      {/* Búsqueda */}
+      <div className="flex flex-col items-center p-5 bg-white rounded-lg shadow-sm hover:shadow-md transition-all h-full">
+        <FiSearch className="text-blue-600 text-4xl mb-3" />
+        <h4 className="font-semibold text-blue-600 mb-2 text-center">Búsqueda inteligente</h4>
+        <p className="text-sm text-gray-600 text-center">
+          Utiliza lenguaje natural para encontrar propiedades según tus preferencias reales.
+        </p>
+      </div>
+
+      {/* Asistencia */}
+      <div className="flex flex-col items-center p-5 bg-white rounded-lg shadow-sm hover:shadow-md transition-all h-full">
+        <FiClock className="text-blue-600 text-4xl mb-3" />
+        <h4 className="font-semibold text-blue-600 mb-2 text-center">Asistencia 24/7</h4>
+        <p className="text-sm text-gray-600 text-center">
+          Disponible siempre para responder consultas y asesorarte.
+        </p>
+      </div>
+
+      {/* Resultados */}
+      <div className="flex flex-col items-center p-5 bg-white rounded-lg shadow-sm hover:shadow-md transition-all h-full">
+        <FiThumbsUp className="text-blue-600 text-4xl mb-3" />
+        <h4 className="font-semibold text-blue-600 mb-2 text-center">Resultados personalizados</h4>
+        <p className="text-sm text-gray-600 text-center">
+          Propiedades recomendadas según tus necesidades y estilo de vida.
+        </p>
+      </div>
+
+      {/* Favoritos */}
+      <div className="flex flex-col items-center p-5 bg-white rounded-lg shadow-sm hover:shadow-md transition-all h-full">
+        <FiStar className="text-blue-600 text-4xl mb-3" />
+        <h4 className="font-semibold text-blue-600 mb-2 text-center">Favoritos</h4>
+        <p className="text-sm text-gray-600 text-center">
+          Guardá las propiedades que te interesan para tenerlas siempre a mano.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 
       {/* Ejemplos */}
       <section className="py-20 px-6 bg-gray-100">
