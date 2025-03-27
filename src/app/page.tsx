@@ -10,12 +10,11 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white-50 text-gray-800 font-sans">
       {/* Navbar */}
-      <header className="flex justify-between items-center px-6 py-4 bg-white shadow-sm sticky top-0 z-50">
+      <header className="flex justify-between items-center px-6 py-4 bg-gray-50 shadow-sm sticky top-0 z-50">
         <h1 className="text-xl font-bold text-blue-600">RealState AI</h1>
         <nav className="hidden md:flex gap-6 text-sm">
           <Link href="#about" className="hover:text-blue-600">Sobre</Link>
           <Link href="#features" className="hover:text-blue-600">Soluciones</Link>
-          <Link href="#pricing" className="hover:text-blue-600">Precios</Link>
           <Link href="/loginPage" className="text-blue-600 font-medium hover:underline">Iniciar sesión</Link>
         </nav>
       </header>
