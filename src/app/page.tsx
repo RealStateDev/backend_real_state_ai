@@ -17,6 +17,7 @@ export default function LandingPage() {
         <nav className="hidden md:flex gap-6 text-sm">
           <Link href="#about" className="hover:text-blue-600">Sobre</Link>
           <Link href="#features" className="hover:text-blue-600">Soluciones</Link>
+          <Link href="#faq" className="hover:text-blue-600">FAQ</Link>
           <Link href="/loginPage" className="text-blue-600 font-medium hover:underline">Iniciar sesión</Link>
         </nav>
       </header>
@@ -39,7 +40,7 @@ export default function LandingPage() {
         </div>
         <div className="mt-10 md:mt-0">
           <Image
-            src="/ilus-01.svg"
+            src="/girl_phone.svg"
             alt="AI buscando casa"
             width={450}
             height={350}
@@ -49,7 +50,7 @@ export default function LandingPage() {
       </section>
 
       {/* Características */}
-      <section id="features" className="bg-white py-20 px-6">
+      <section id="features" className="bg-gray-50 py-20 px-6">
   <div className="max-w-6xl mx-auto text-center">
     <h3 className="text-3xl font-semibold mb-12">Lo que puede hacer RealState AI</h3>
     <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
@@ -95,7 +96,7 @@ export default function LandingPage() {
 
 
       {/* Ejemplos */}
-      <section className="py-20 px-6 bg-gray-100">
+      <section id="faq" className="py-20 px-6 bg-white">
         <div className="max-w-5xl mx-auto text-center">
           <h3 className="text-3xl font-semibold mb-10">Pregúntas que podés hacerle al bot</h3>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 text-left">
@@ -110,8 +111,8 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Final */}
-      <section className="py-20 px-6 text-center">
-        <h3 className="text-3xl font-semibold mb-6">Listo para encontrar tu próximo hogar?</h3>
+      <section className="py-20 px-6 text-center bg-gray-50">
+        <h3 className="text-3xl font-semibold mb-6">¿Estás listo para encontrar tu próximo hogar?</h3>
         <Link href="/loginPage">
           <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-3 rounded-lg">
             Empezar ahora
