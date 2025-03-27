@@ -8,7 +8,7 @@ import Image from "next/image";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+    <div className="min-h-screen bg-white-50 text-gray-800 font-sans">
       {/* Navbar */}
       <header className="flex justify-between items-center px-6 py-4 bg-white shadow-sm sticky top-0 z-50">
         <h1 className="text-xl font-bold text-blue-600">RealState AI</h1>
