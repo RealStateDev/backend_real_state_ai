@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { BsPersonFill } from "react-icons/bs";
+import { BsPersonFill, BsHeart } from "react-icons/bs";
 
 export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -60,6 +60,12 @@ export default function HomePage() {
     sendMessage(message);
   };
 
+  const handleSaveBotMessage = (content: string) => {
+    const saved = localStorage.getItem("savedBotMessages");
+    const current = saved ? JSON.parse(saved) : [];
+    localStorage.setItem("savedBotMessages", JSON.stringify([...current, content]));
+  };
+
   const quickOptions = [
     { title: "Ayudame a buscar una casa", detail: "En Asunción para alquiler" },
     { title: "Quiero comprar un departamento", detail: "En zona Villamorra o Carmelitas" },
@@ -114,12 +120,23 @@ export default function HomePage() {
         <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-4 max-w-2xl mx-auto w-full">
           {messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}>
-              <div
-                className={`px-4 py-2 rounded-lg max-w-[80%] text-sm leading-relaxed ${
-                  msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-                } animate-fade-in`}
-                dangerouslySetInnerHTML={{ __html: msg.content }}
-              />
+              <div className="relative group">
+                <div
+                  className={`px-4 py-2 rounded-lg max-w-[80%] text-sm leading-relaxed ${
+                    msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
+                  } animate-fade-in`}
+                  dangerouslySetInnerHTML={{ __html: msg.content }}
+                />
+                {msg.sender === "bot" && (
+                  <button
+                    onClick={() => handleSaveBotMessage(msg.content)}
+                    className="absolute -right-6 top-2 text-gray-400 hover:text-blue-500 transition"
+                    title="Guardar respuesta"
+                  >
+                    <BsHeart />
+                  </button>
+                )}
+              </div>
               <div className="sr-only" aria-hidden="true">{msg.content}</div>
             </div>
           ))}
