@@ -12,12 +12,12 @@ interface BaseMessage {
 
 interface TextMessage extends BaseMessage {
   type?: "text";
-  content: string; 
+  content: string;
 }
 
 interface RecommendationMessage extends BaseMessage {
   type: "recommendation";
-  content: string; 
+  content: string;
   items: { title: string; link: string }[];
 }
 
@@ -30,7 +30,6 @@ export default function HomePage() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showCards, setShowCards] = useState(true);
-
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -55,6 +54,10 @@ export default function HomePage() {
 
   const handleLogout = () => {
     router.push("/loginPage");
+  };
+
+  const handleGoToSaved = () => {
+    router.push("/savedPage");
   };
 
   const sendMessage = (text: string) => {
@@ -94,10 +97,13 @@ export default function HomePage() {
     sendMessage(message);
   };
 
-  const handleSaveBotMessage = (content: string) => {
+  const handleSaveBotMessage = (item: { title: string; link: string }) => {
     const saved = localStorage.getItem("savedBotMessages");
     const current = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("savedBotMessages", JSON.stringify([...current, content]));
+    const alreadyExists = current.some((p: any) => p.title === item.title);
+    if (!alreadyExists) {
+      localStorage.setItem("savedBotMessages", JSON.stringify([...current, item]));
+    }
   };
 
   const quickOptions = [
@@ -110,13 +116,13 @@ export default function HomePage() {
   return (
     <div className="h-screen w-screen overflow-hidden flex">
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
-        <SidebarContent onOptionClick={() => {}} onLogout={handleLogout} userName={userName} />
+        <SidebarContent onSavedClick={handleGoToSaved} onOptionClick={() => {}} onLogout={handleLogout} userName={userName} />
       </aside>
 
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
-            <SidebarContent onOptionClick={handleSidebarOptionClick} onLogout={handleLogout} userName={userName} />
+            <SidebarContent onSavedClick={handleGoToSaved} onOptionClick={handleSidebarOptionClick} onLogout={handleLogout} userName={userName} />
           </div>
           <div className="flex-1 bg-white bg-opacity-25" onClick={handleMenuToggle} />
         </div>
@@ -129,7 +135,6 @@ export default function HomePage() {
               <h1 className="text-2xl font-semibold">👋 {`¡Hola ${userName || "!"}!`}</h1>
               <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
               <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
-
               {showCards && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                   {quickOptions.map((opt, idx) => (
@@ -152,28 +157,8 @@ export default function HomePage() {
           {messages.map((msg, index) => {
             if (!msg.type || msg.type === "text") {
               return (
-                <div
-                  key={index}
-                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
-                >
-                  <div className="relative group">
-                    <div
-                      className={`
-                        px-4 py-2 rounded-lg text-sm leading-relaxed 
-                        ${msg.sender === "user" ? "bg-blue-600 text-white max-w-sm" : "bg-gray-200 text-gray-800 max-w-md"}
-                        whitespace-pre-wrap
-                      `}
-                      dangerouslySetInnerHTML={{ __html: msg.content }}
-                    />
-                    {msg.sender === "bot" && (
-                      <button
-                        onClick={() => handleSaveBotMessage(msg.content)}
-                        className="absolute -right-6 top-2 text-gray-400 hover:text-blue-500 transition"
-                        title="Guardar respuesta"
-                      >
-                      </button>
-                    )}
-                  </div>
+                <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}>
+                  <div className="px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap bg-gray-200 text-gray-800 max-w-md" dangerouslySetInnerHTML={{ __html: msg.content }} />
                 </div>
               );
             }
@@ -181,37 +166,27 @@ export default function HomePage() {
             if (msg.type === "recommendation") {
               return (
                 <div key={index} className="flex justify-start mb-2">
-                  <div className="relative group">
-                    <div
-                      className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm leading-relaxed max-w-md whitespace-pre-wrap"
-                    >
-                      <p>
-                        <strong>Bot: </strong>
-                        {msg.content}
-                      </p>
-                      <ul className="mt-2 ml-4 list-disc">
-                        {msg.items.map((item, i) => (
-                          <li key={i} className="mt-1">
-                            <a
-                              href={item.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 underline"
-                            >
+                  <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm leading-relaxed max-w-md">
+                    <p><strong>Bot: </strong>{msg.content}</p>
+                    <ul className="mt-2 ml-4 list-disc">
+                      {msg.items.map((item, i) => {
+                        const savedList = JSON.parse(localStorage.getItem("savedBotMessages") || "[]");
+                        const isSaved = savedList.some((p: any) => p.title === item.title);
+                        return (
+                          <li key={i} className="mt-1 flex items-center justify-between gap-2">
+                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                               {item.title}
                             </a>
-                            <BsHeart className="inline-block ml-2 text-pink-500" />
+                            <BsHeart
+                              className={`inline-block ml-2 cursor-pointer transition ${
+                                isSaved ? "text-pink-500" : "text-gray-400 hover:text-pink-500"
+                              }`}
+                              onClick={() => handleSaveBotMessage(item)}
+                            />
                           </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <button
-                      onClick={() => handleSaveBotMessage(JSON.stringify(msg))}
-                      className="absolute -right-6 top-2 text-gray-400 hover:text-blue-500 transition"
-                      title="Guardar respuesta"
-                    >
-                    </button>
+                        );
+                      })}
+                    </ul>
                   </div>
                 </div>
               );
@@ -250,14 +225,11 @@ export default function HomePage() {
   );
 }
 
-function SidebarContent({
-  onOptionClick,
-  onLogout,
-  userName,
-}: {
+function SidebarContent({ onOptionClick, onLogout, userName, onSavedClick }: {
   onOptionClick: () => void;
   onLogout: () => void;
   userName: string;
+  onSavedClick: () => void;
 }) {
   return (
     <div className="flex flex-col justify-between h-full">
@@ -265,7 +237,7 @@ function SidebarContent({
         <h2 className="text-2xl font-bold mb-8 mt-8">RealState AI</h2>
         <nav className="space-y-4">
           <SidebarButton icon={<CiCirclePlus />} label="Nueva búsqueda" onClick={onOptionClick} />
-          <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onOptionClick} />
+          <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
           <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
         </nav>
       </div>
@@ -285,15 +257,7 @@ function SidebarContent({
   );
 }
 
-function SidebarButton({
-  icon,
-  label,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
+function SidebarButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
