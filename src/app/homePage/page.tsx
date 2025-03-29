@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
@@ -12,14 +12,17 @@ export default function HomePage() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<{ sender: "user" | "bot"; content: string }[]>([]);
   const [showCards, setShowCards] = useState(true);
+  const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
-    if (storedName) {
-      setUserName(storedName);
-    }
+    if (storedName) setUserName(storedName);
   }, []);
+
+  useEffect(() => {
+    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
 
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -37,7 +40,7 @@ export default function HomePage() {
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
-    setShowCards(false); // Ocultar cards después del primer envío
+    setShowCards(false);
 
     const userMsg = { sender: "user" as const, content: `<p>${text}</p>` };
     setMessages((prev) => [...prev, userMsg]);
@@ -46,7 +49,7 @@ export default function HomePage() {
     setTimeout(() => {
       const botMsg = {
         sender: "bot" as const,
-        content: `<p><strong>Bot:</strong> Estoy analizando tu consulta sobre <em>${text}</em>...</p>`,
+        content: `<p><strong>Bot:</strong> Estoy analizando tu consulta sobre <em>${text}</em>...</p>`
       };
       setMessages((prev) => [...prev, botMsg]);
     }, 1000);
@@ -58,26 +61,14 @@ export default function HomePage() {
   };
 
   const quickOptions = [
-    {
-      title: "Ayudame a buscar una casa",
-      detail: "En Asunción para alquiler",
-    },
-    {
-      title: "Quiero comprar un departamento",
-      detail: "En zona Villamorra o Carmelitas",
-    },
-    {
-      title: "¿Qué propiedades hay disponibles?",
-      detail: "En Lambaré con 3 habitaciones",
-    },
-    {
-      title: "Busco una oficina para alquilar",
-      detail: "Con estacionamiento incluido",
-    },
+    { title: "Ayudame a buscar una casa", detail: "En Asunción para alquiler" },
+    { title: "Quiero comprar un departamento", detail: "En zona Villamorra o Carmelitas" },
+    { title: "¿Qué propiedades hay disponibles?", detail: "En Lambaré con 3 habitaciones" },
+    { title: "Busco una oficina para alquilar", detail: "Con estacionamiento incluido" },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+    <div className="h-screen flex overflow-hidden">
       {/* Sidebar */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
         <SidebarContent onOptionClick={() => {}} onLogout={handleLogout} userName={userName} />
@@ -92,22 +83,15 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="flex-1 relative overflow-y-auto">
-        <button
-          onClick={handleMenuToggle}
-          className="md:hidden absolute top-4 left-4 z-50"
-        >
-          <FiMenu className="w-6 h-6 text-gray-700" />
-        </button>
-
+      {/* Main + Chat */}
+      <div className="flex-1 flex flex-col bg-gray-50">
+        {/* Header y tarjetas */}
         {showMainContent && (
-          <main className="flex flex-col items-center justify-center text-center px-6 pt-16">
-            <div className="max-w-2xl w-full">
-            <h1 className="text-2xl font-semibold">👋 {`¡Hola ${userName || "!"}!`}</h1>
+          <div className="shrink-0 px-6 pt-10 text-center">
+            <div className="max-w-2xl mx-auto">
+              <h1 className="text-2xl font-semibold">👋 {`¡Hola ${userName || "!"}!`}</h1>
               <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
               <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
-
               {showCards && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                   {quickOptions.map((opt, idx) => (
@@ -123,50 +107,48 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-          </main>
+          </div>
         )}
 
-        {/* Chatbox */}
-        <div className="px-6 py-4 max-w-2xl mx-auto space-y-4">
+        {/* Chatbox scrollable */}
+        <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-4 max-w-2xl mx-auto w-full">
           {messages.map((msg, index) => (
-            <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+            <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}>
               <div
-                className={`px-4 py-2 rounded-lg max-w-[80%] ${
+                className={`px-4 py-2 rounded-lg max-w-[80%] text-sm leading-relaxed ${
                   msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
                 } animate-fade-in`}
                 dangerouslySetInnerHTML={{ __html: msg.content }}
               />
-              {/* Raw HTML (invisible for user, visible for dev/IA) */}
               <div className="sr-only" aria-hidden="true">{msg.content}</div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Input */}
-      <div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center gap-2">
-        <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-          }
-        }}
-        placeholder="¿Qué estás buscando?"
-        className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-          <button
-            type="button"
-            onClick={handleSend}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            Enviar
-          </button>
+        {/* Input */}
+        <div className="shrink-0 bg-white border-t border-gray-200 px-4 py-3">
+          <div className="max-w-2xl mx-auto flex items-center gap-2">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder="¿Qué estás buscando?"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onClick={handleSend}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Enviar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -192,7 +174,6 @@ function SidebarContent({
           <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
         </nav>
       </div>
-
       <div className="space-y-6">
         <SidebarButton icon={<FiLogOut />} label="Salir" onClick={onLogout} />
         <div className="flex items-center gap-3">
