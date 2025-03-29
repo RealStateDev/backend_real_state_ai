@@ -1,22 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* Evita scroll global */
+  overflow: hidden;
+}
+
 :root {
   --background: white;
   --foreground: white;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
-    --background:white;
-    --foreground:white;
+    --background: white;
+    --foreground: white;
   }
 }
 
@@ -34,7 +36,6 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-in-out;
 }
-
 
 body {
   background: var(--background);

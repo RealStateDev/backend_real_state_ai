@@ -1,17 +1,36 @@
 "use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { BsPersonFill, BsHeart } from "react-icons/bs";
 
+interface BaseMessage {
+  sender: "user" | "bot";
+}
+
+interface TextMessage extends BaseMessage {
+  type?: "text";
+  content: string; 
+}
+
+interface RecommendationMessage extends BaseMessage {
+  type: "recommendation";
+  content: string; 
+  items: { title: string; link: string }[];
+}
+
+type ChatMessage = TextMessage | RecommendationMessage;
+
 export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
   const [userName, setUserName] = useState<string>("");
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<{ sender: "user" | "bot"; content: string }[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showCards, setShowCards] = useState(true);
+
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -42,16 +61,31 @@ export default function HomePage() {
     if (!text.trim()) return;
     setShowCards(false);
 
-    const userMsg = { sender: "user" as const, content: `<p>${text}</p>` };
+    const userMsg: TextMessage = { sender: "user", type: "text", content: `<p>${text}</p>` };
     setMessages((prev) => [...prev, userMsg]);
     setMessage("");
 
     setTimeout(() => {
-      const botMsg = {
-        sender: "bot" as const,
-        content: `<p><strong>Bot:</strong> Estoy analizando tu consulta sobre <em>${text}</em>...</p>`
+      const analyzingMsg: TextMessage = {
+        sender: "bot",
+        type: "text",
+        content: `<p><strong>Bot:</strong> Estoy analizando tu consulta sobre <em>${text}</em>...</p>`,
       };
-      setMessages((prev) => [...prev, botMsg]);
+      setMessages((prev) => [...prev, analyzingMsg]);
+
+      setTimeout(() => {
+        const recommendedMsg: RecommendationMessage = {
+          sender: "bot",
+          type: "recommendation",
+          content: "Las propiedades que le recomiendo son:",
+          items: [
+            { title: "Propiedad 1", link: "https://example.com/propiedad-1" },
+            { title: "Propiedad 2", link: "https://example.com/propiedad-2" },
+            { title: "Propiedad 3", link: "https://example.com/propiedad-3" },
+          ],
+        };
+        setMessages((prev) => [...prev, recommendedMsg]);
+      }, 2000);
     }, 1000);
   };
 
@@ -74,8 +108,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      {/* Sidebar */}
+    <div className="h-screen w-screen overflow-hidden flex">
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
         <SidebarContent onOptionClick={() => {}} onLogout={handleLogout} userName={userName} />
       </aside>
@@ -89,15 +122,14 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Main + Chat */}
       <div className="flex-1 flex flex-col bg-gray-50">
-        {/* Header y tarjetas */}
         {showMainContent && (
           <div className="shrink-0 px-6 pt-10 text-center">
             <div className="max-w-2xl mx-auto">
               <h1 className="text-2xl font-semibold">👋 {`¡Hola ${userName || "!"}!`}</h1>
               <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
               <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
+
               {showCards && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                   {quickOptions.map((opt, idx) => (
@@ -116,33 +148,79 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Chatbox scrollable */}
         <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-4 max-w-2xl mx-auto w-full">
-          {messages.map((msg, index) => (
-            <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}>
-              <div className="relative group">
+          {messages.map((msg, index) => {
+            if (!msg.type || msg.type === "text") {
+              return (
                 <div
-                  className={`px-4 py-2 rounded-lg max-w-[80%] text-sm leading-relaxed ${
-                    msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-                  } animate-fade-in`}
-                  dangerouslySetInnerHTML={{ __html: msg.content }}
-                />
-                {msg.sender === "bot" && (
-                  <button
-                    onClick={() => handleSaveBotMessage(msg.content)}
-                    className="absolute -right-6 top-2 text-gray-400 hover:text-blue-500 transition"
-                    title="Guardar respuesta"
-                  >
-                    <BsHeart />
-                  </button>
-                )}
-              </div>
-              <div className="sr-only" aria-hidden="true">{msg.content}</div>
-            </div>
-          ))}
+                  key={index}
+                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
+                >
+                  <div className="relative group">
+                    <div
+                      className={`
+                        px-4 py-2 rounded-lg text-sm leading-relaxed 
+                        ${msg.sender === "user" ? "bg-blue-600 text-white max-w-sm" : "bg-gray-200 text-gray-800 max-w-md"}
+                        whitespace-pre-wrap
+                      `}
+                      dangerouslySetInnerHTML={{ __html: msg.content }}
+                    />
+                    {msg.sender === "bot" && (
+                      <button
+                        onClick={() => handleSaveBotMessage(msg.content)}
+                        className="absolute -right-6 top-2 text-gray-400 hover:text-blue-500 transition"
+                        title="Guardar respuesta"
+                      >
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
+            if (msg.type === "recommendation") {
+              return (
+                <div key={index} className="flex justify-start mb-2">
+                  <div className="relative group">
+                    <div
+                      className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm leading-relaxed max-w-md whitespace-pre-wrap"
+                    >
+                      <p>
+                        <strong>Bot: </strong>
+                        {msg.content}
+                      </p>
+                      <ul className="mt-2 ml-4 list-disc">
+                        {msg.items.map((item, i) => (
+                          <li key={i} className="mt-1">
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline"
+                            >
+                              {item.title}
+                            </a>
+                            <BsHeart className="inline-block ml-2 text-pink-500" />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <button
+                      onClick={() => handleSaveBotMessage(JSON.stringify(msg))}
+                      className="absolute -right-6 top-2 text-gray-400 hover:text-blue-500 transition"
+                      title="Guardar respuesta"
+                    >
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            return null;
+          })}
         </div>
 
-        {/* Input */}
         <div className="shrink-0 bg-white border-t border-gray-200 px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center gap-2">
             <input
