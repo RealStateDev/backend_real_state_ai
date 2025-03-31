@@ -3,8 +3,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch, CiHome } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BsPersonFill, BsHeart, BsHeartFill } from "react-icons/bs";
+import { CiChat1 } from "react-icons/ci";
+
+interface ChatSession {
+  id: string;
+  title: string;
+  date: string;
+  messages: ChatMessage[];
+}
 
 interface BaseMessage {
   sender: "user" | "bot";
@@ -26,36 +34,81 @@ type ChatMessage = TextMessage | RecommendationMessage;
 export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
-  const [userName, setUserName] = useState<string>("");
+  const [userName, setUserName] = useState("");
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showCards, setShowCards] = useState(true);
-  const chatRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
 
   const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams(); // para detectar ?sessionId=...
 
+  // Al montar: leer userName, sessions, saved
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
     if (storedName) setUserName(storedName);
-  }, []);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("savedBotMessages");
-    if (saved) {
-      setSavedMessages(JSON.parse(saved));
+    const stored = localStorage.getItem("chatSessions");
+    if (stored) {
+      const parsed: ChatSession[] = JSON.parse(stored);
+      setSessions(parsed);
     }
+
+    const saved = localStorage.getItem("savedBotMessages");
+    if (saved) setSavedMessages(JSON.parse(saved));
   }, []);
 
+  // Si la URL tiene ?sessionId=..., busca esa sesión y cárgala en currentSession
+  useEffect(() => {
+    const sId = searchParams.get("sessionId");
+    if (sId) {
+      const found = sessions.find((s) => s.id === sId);
+      if (found) {
+        setCurrentSession(found);
+        return;
+      }
+    }
+    // Si no hay sessionId o no existe, usamos la última (si existe) o creamos nueva
+    if (!currentSession) {
+      if (sessions.length > 0) {
+        // Toma la última como actual
+        setCurrentSession(sessions[sessions.length - 1]);
+      } else {
+        startNewSession(); // si no hay nada, crea una
+      }
+    }
+  }, [sessions, currentSession, searchParams]);
+
+  // Cada vez que sessions cambie, guardamos en localStorage
+  useEffect(() => {
+    localStorage.setItem("chatSessions", JSON.stringify(sessions));
+  }, [sessions]);
+
+  // Cuando cambia currentSession, la sincronizamos en sessions
+  useEffect(() => {
+    if (!currentSession) return;
+    setSessions((prev) => {
+      const idx = prev.findIndex((s) => s.id === currentSession.id);
+      const updated = [...prev];
+      if (idx >= 0) updated[idx] = currentSession;
+      else updated.push(currentSession);
+      return updated;
+    });
+  }, [currentSession]);
+
+  // Scroll auto
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [currentSession]);
 
+  // Manejo del sidebar
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
   };
-
   const handleSidebarOptionClick = () => {
     setSidebarOpen(false);
     setShowMainContent(true);
@@ -64,43 +117,78 @@ export default function HomePage() {
   const handleLogout = () => {
     router.push("/loginPage");
   };
-
   const handleGoToSaved = () => {
     router.push("/savedPage");
   };
-
   const handleGoHome = () => {
     router.push("/homePage");
   };
+  const handleHistoryChats = () => {
+    router.push("/chatHistoryPage");
+  };
+  
+  // startNewSession -> crea un nuevo chat
+  const startNewSession = () => {
+    const newSession: ChatSession = {
+      id: String(Date.now()), // o crypto.randomUUID()
+      title: "Chat " + new Date().toLocaleString(),
+      date: new Date().toISOString(),
+      messages: [],
+    };
+    setCurrentSession(newSession);
+    setShowCards(true);
+  };
 
+  // Enviar mensaje
   const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || !currentSession) return;
     setShowCards(false);
 
-    const userMsg: TextMessage = { sender: "user", type: "text", content: `<p>${text}</p>` };
-    setMessages((prev) => [...prev, userMsg]);
+    const userMsg: TextMessage = {
+      sender: "user",
+      type: "text",
+      content: `<p>${text}</p>`,
+    };
+
+    setCurrentSession({
+      ...currentSession,
+      messages: [...currentSession.messages, userMsg],
+    });
+
     setMessage("");
 
     setTimeout(() => {
       const analyzingMsg: TextMessage = {
         sender: "bot",
         type: "text",
-        content: `<p><strong>Bot:</strong> Estoy analizando tu consulta sobre <em>${text}</em>...</p>`,
+        content: `<p><strong>Bot:</strong> Estoy analizando tu consulta...</p>`,
       };
-      setMessages((prev) => [...prev, analyzingMsg]);
+      setCurrentSession((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          messages: [...prev.messages, analyzingMsg],
+        };
+      });
 
       setTimeout(() => {
         const recommendedMsg: RecommendationMessage = {
           sender: "bot",
           type: "recommendation",
-          content: "Las propiedades que le recomiendo son:",
+          content: "Propiedades recomendadas...",
           items: [
-            { title: "Propiedad 1", link: "https://example.com/propiedad-1" },
-            { title: "Propiedad 2", link: "https://example.com/propiedad-2" },
-            { title: "Propiedad 3", link: "https://example.com/propiedad-3" },
+            { title: "Propiedad 1", link: "https://example.com/prop1" },
+            { title: "Propiedad 2", link: "https://example.com/prop2" },
+            { title: "Propiedad 3", link: "https://example.com/prop3" },
           ],
         };
-        setMessages((prev) => [...prev, recommendedMsg]);
+        setCurrentSession((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            messages: [...prev.messages, recommendedMsg],
+          };
+        });
       }, 2000);
     }, 1000);
   };
@@ -110,6 +198,7 @@ export default function HomePage() {
     sendMessage(message);
   };
 
+  // Favoritos
   const handleSaveBotMessage = (item: { title: string; link: string }) => {
     setSavedMessages((prev) => {
       const alreadyExists = prev.some((p) => p.title === item.title);
@@ -133,45 +222,50 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+      {/* SIDEBAR DESKTOP */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
-        <SidebarContent
-          onSavedClick={handleGoToSaved}
-          onOptionClick={() => {}}
-          onLogout={handleLogout}
-          userName={userName}
-          onHomeClick={handleGoHome}
-        />
+      <SidebarContent
+      onNewChat={startNewSession}
+      onSavedClick={handleGoToSaved}
+      onOptionClick={handleSidebarOptionClick}
+      onLogout={handleLogout}
+      userName={userName}
+      onHomeClick={handleGoHome}
+      handleHistoryChats={handleHistoryChats}
+      />
       </aside>
 
+      {/* SIDEBAR MOBILE */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
             <SidebarContent
+              onNewChat={startNewSession}
               onSavedClick={handleGoToSaved}
               onOptionClick={handleSidebarOptionClick}
               onLogout={handleLogout}
               userName={userName}
               onHomeClick={handleGoHome}
+              handleHistoryChats={handleHistoryChats}
             />
           </div>
           <div className="flex-1 bg-white bg-opacity-25" onClick={handleMenuToggle} />
         </div>
       )}
 
+      {/* CONTENIDO PRINCIPAL */}
       <div className="flex-1 relative">
-        <button
-          onClick={handleMenuToggle}
-          className="md:hidden absolute top-4 left-4 z-50"
-        >
+        <button onClick={handleMenuToggle} className="md:hidden absolute top-4 left-4 z-50">
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
-        {showMainContent && (
+        {showMainContent && currentSession && (
           <main className="flex flex-col items-center justify-center text-center px-6 pt-10 pb-16">
             <div className="max-w-2xl">
               <h1 className="text-2xl font-semibold">👋 ¡Hola {userName || ""}!</h1>
               <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
               <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
+
               {showCards && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                   {quickOptions.map((opt, idx) => (
@@ -191,8 +285,8 @@ export default function HomePage() {
         )}
 
         <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-4 max-w-2xl mx-auto w-full">
-          {messages.map((msg, index) => {
-            if (!msg.type || msg.type === "text") {
+          {currentSession?.messages.map((msg, index) => {
+            if (msg.type === "text") {
               return (
                 <div
                   key={index}
@@ -207,7 +301,6 @@ export default function HomePage() {
                 </div>
               );
             }
-
             if (msg.type === "recommendation") {
               return (
                 <div key={index} className="flex justify-start mb-2">
@@ -253,6 +346,7 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* INPUT ABAJO */}
       <div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
           <input
@@ -283,16 +377,20 @@ export default function HomePage() {
 
 // SIDEBAR
 function SidebarContent({
+  onNewChat,
+  onSavedClick,
   onOptionClick,
+  handleHistoryChats, 
   onLogout,
   userName,
-  onSavedClick,
   onHomeClick,
 }: {
+  onNewChat: () => void;
+  onSavedClick: () => void;
   onOptionClick: () => void;
+  handleHistoryChats: () => void;
   onLogout: () => void;
   userName: string;
-  onSavedClick: () => void;
   onHomeClick: () => void;
 }) {
   return (
@@ -300,26 +398,11 @@ function SidebarContent({
       <div>
         <h2 className="text-2xl font-bold mb-8 mt-8">RealState AI</h2>
         <nav className="space-y-4">
-          <SidebarButton
-            icon={<CiCirclePlus />}
-            label="Nueva búsqueda"
-            onClick={onOptionClick}
-          />
-          <SidebarButton
-            icon={<CiFolderOn />}
-            label="Propiedades guardadas"
-            onClick={onSavedClick}
-          />
-          <SidebarButton
-            icon={<CiSearch />}
-            label="Buscar"
-            onClick={onOptionClick}
-          />
-          <SidebarButton
-            icon={<CiHome />}
-            label="Inicio"
-            onClick={onHomeClick}
-          />
+          <SidebarButton icon={<CiCirclePlus />} label="Nuevo chat" onClick={onNewChat} />
+          <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
+          <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
+          <SidebarButton icon={<CiChat1 />} label="Historial de Chats" onClick={handleHistoryChats} />
+          <SidebarButton icon={<CiHome />} label="Inicio" onClick={onHomeClick} />
         </nav>
       </div>
       <div className="space-y-6 mt-8">
@@ -329,9 +412,7 @@ function SidebarContent({
             <BsPersonFill className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-800">
-              {userName || "Usuario"}
-            </p>
+            <p className="text-sm font-medium text-gray-800">{userName || "Usuario"}</p>
             <p className="text-xs text-gray-500">Mi cuenta</p>
           </div>
         </div>

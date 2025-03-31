@@ -3,67 +3,84 @@
 import React, { useEffect, useState } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
-import { BsPersonFill } from "react-icons/bs";
 import { useRouter } from "next/navigation";
+import { BsPersonFill } from "react-icons/bs";
 
-export default function SavedPage() {
-  const [savedBotMessages, setSavedBotMessages] = useState<{ title: string; link: string }[]>([]);
-  const [userName, setUserName] = useState<string>("");
+// Repite la misma interfaz
+interface ChatSession {
+  id: string;
+  title: string;
+  date: string;
+  messages: any[]; // Ajusta si tienes un tipo + estricto
+}
+
+export default function ChatHistoryPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
 
+  const [userName, setUserName] = useState<string>("");
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+
   const router = useRouter();
 
-  // Al montar, obtenemos las propiedades guardadas y el nombre de usuario
+  // Al montar, leemos userName y chatSessions
   useEffect(() => {
-    const saved = localStorage.getItem("savedBotMessages");
-    if (saved) {
-      setSavedBotMessages(JSON.parse(saved));
-    }
-
     const storedName = localStorage.getItem("userName");
-    if (storedName) {
-      setUserName(storedName);
+    if (storedName) setUserName(storedName);
+
+    const stored = localStorage.getItem("chatSessions");
+    if (stored) {
+      const parsed: ChatSession[] = JSON.parse(stored);
+      setSessions(parsed);
     }
   }, []);
 
-  // Toggle para el sidebar en mobile
+  // SIDEBAR mobile
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
   };
 
-  // Cerrar el sidebar en mobile al pulsar alguna opción
   const handleSidebarOptionClick = () => {
     setSidebarOpen(false);
     setShowMainContent(true);
   };
 
-  // Navegación
+  // Navegaciones
   const handleLogout = () => {
     router.push("/loginPage");
   };
+  const handleGoToSaved = () => {
+    router.push("/savedPage");
+  };
   const handleGoHome = () => {
-    router.push("/homePage"); 
+    router.push("/homePage");
   };
   const handleNewChat = () => {
-    router.push("/homePage"); 
+    // Simplemente ve a HomePage y crea chat nuevo
+    router.push("/homePage"); // Podrías añadir "nuevoChat=1" si quieres
   };
   const handleHistoryChats = () => {
-    router.push("/chatHistoryPage");
+    // Ya estás en Historial, si quisieras quedarte
+  };
+
+  // Reanudar la sesión => push a home con ?sessionId
+  const resumeSession = (id: string) => {
+    router.push(`/homePage?sessionId=${id}`);
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
-      {/* SIDEBAR DESKTOP */}
+      {/* SIDEBAR (desktop) */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
         <SidebarContent
           onNewChat={handleNewChat}
-          onHistoryChats={handleHistoryChats}
-          onSavedClick={handleSidebarOptionClick}
+          onSavedClick={handleGoToSaved}
+          onOptionClick={handleSidebarOptionClick}
           onLogout={handleLogout}
           userName={userName}
           onHomeClick={handleGoHome}
+          handleHistoryChats={handleHistoryChats}
         />
       </aside>
 
@@ -73,18 +90,15 @@ export default function SavedPage() {
           <div className="w-64 bg-white p-6 border-r border-gray-200">
             <SidebarContent
               onNewChat={handleNewChat}
-              onHistoryChats={handleHistoryChats}
-              onSavedClick={handleSidebarOptionClick}
+              onSavedClick={handleGoToSaved}
+              onOptionClick={handleSidebarOptionClick}
               onLogout={handleLogout}
               userName={userName}
               onHomeClick={handleGoHome}
+              handleHistoryChats={handleHistoryChats}
             />
           </div>
-          {/* Clic fuera para cerrar */}
-          <div
-            className="flex-1 bg-white bg-opacity-25"
-            onClick={handleMenuToggle}
-          />
+          <div className="flex-1 bg-white bg-opacity-25" onClick={handleMenuToggle} />
         </div>
       )}
 
@@ -99,26 +113,30 @@ export default function SavedPage() {
         </button>
 
         {showMainContent && (
-          <main className="flex flex-col px-6 py-10 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Propiedades guardadas</h1>
-            {savedBotMessages.length === 0 ? (
-              <p className="text-gray-500">No tienes propiedades guardadas aún.</p>
+          <main className="px-6 py-10 max-w-3xl mx-auto">
+            <h1 className="text-3xl font-bold mb-6">Historial de Chats</h1>
+            {sessions.length === 0 ? (
+              <p className="text-gray-500">No hay chats guardados.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {savedBotMessages.map((item, index) => (
-                  <div key={index} className="bg-white border rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800">{item.title}</h3>
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 underline"
+              <ul className="space-y-4">
+                {sessions.map((session) => (
+                  <li key={session.id} className="bg-white p-4 rounded-lg border shadow-sm">
+                    <h2 className="font-semibold">
+                      {session.title || "Chat sin título"}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {new Date(session.date).toLocaleString()} –{" "}
+                      {session.messages.length} mensajes
+                    </p>
+                    <button
+                      onClick={() => resumeSession(session.id)}
+                      className="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
                     >
-                      Ver propiedad
-                    </a>
-                  </div>
+                      Reanudar
+                    </button>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </main>
         )}
@@ -127,18 +145,20 @@ export default function SavedPage() {
   );
 }
 
-// SIDEBAR
+// ============== SIDEBAR ==============
 function SidebarContent({
   onNewChat,
-  onHistoryChats,
   onSavedClick,
+  onOptionClick,
+  handleHistoryChats,
   onLogout,
   userName,
   onHomeClick,
 }: {
   onNewChat: () => void;
-  onHistoryChats: () => void;
   onSavedClick: () => void;
+  onOptionClick: () => void;
+  handleHistoryChats: () => void;
   onLogout: () => void;
   userName: string;
   onHomeClick: () => void;
@@ -148,11 +168,11 @@ function SidebarContent({
       <div>
         <h2 className="text-2xl font-bold mb-8 mt-8">RealState AI</h2>
         <nav className="space-y-4">
-        <SidebarButton icon={<CiCirclePlus />} label="Nuevo chat" onClick={onNewChat} />
-        <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
-        <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onSavedClick} />
-        <SidebarButton icon={<CiChat1 />} label="Historial de Chats" onClick={onHistoryChats} />
-        <SidebarButton icon={<CiHome />} label="Inicio" onClick={onHomeClick} />
+          <SidebarButton icon={<CiCirclePlus />} label="Nuevo chat" onClick={onNewChat} />
+          <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
+          <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
+          <SidebarButton icon={<CiChat1 />} label="Historial de Chats" onClick={handleHistoryChats} />
+          <SidebarButton icon={<CiHome />} label="Inicio" onClick={onHomeClick} />
         </nav>
       </div>
       <div className="space-y-6 mt-8">
@@ -162,9 +182,7 @@ function SidebarContent({
             <BsPersonFill className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-800">
-              {userName || "Usuario"}
-            </p>
+            <p className="text-sm font-medium text-gray-800">{userName || "Usuario"}</p>
             <p className="text-xs text-gray-500">Mi cuenta</p>
           </div>
         </div>
@@ -173,7 +191,6 @@ function SidebarContent({
   );
 }
 
-// BOTÓN SIDEBAR
 function SidebarButton({
   icon,
   label,
