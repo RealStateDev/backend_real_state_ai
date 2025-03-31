@@ -1,22 +1,20 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { CiCirclePlus, CiFolderOn, CiSearch } from "react-icons/ci";
-import { FiLogOut, FiMenu } from "react-icons/fi";
+import { CiCirclePlus, CiFolderOn, CiSearch, CiHome } from "react-icons/ci";
+import { FiMenu, FiLogOut } from "react-icons/fi";
 import { BsPersonFill } from "react-icons/bs";
 import { useRouter } from "next/navigation";
 
 export default function SavedPage() {
-  // Control de sidebar y vista principal (igual que en HomePage)
+  const [savedBotMessages, setSavedBotMessages] = useState<{ title: string; link: string }[]>([]);
+  const [userName, setUserName] = useState<string>("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
 
-  // Estado para propiedades guardadas y nombre de usuario
-  const [savedBotMessages, setSavedBotMessages] = useState<{ title: string; link: string }[]>([]);
-  const [userName, setUserName] = useState<string>("");
-
   const router = useRouter();
 
+  // Al montar, obtenemos las propiedades guardadas y el nombre de usuario
   useEffect(() => {
     const saved = localStorage.getItem("savedBotMessages");
     if (saved) {
@@ -29,13 +27,13 @@ export default function SavedPage() {
     }
   }, []);
 
-  // Manejador para abrir/cerrar la sidebar en mobile
+  // Toggle para el sidebar en mobile
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
   };
 
-  // Si hacemos clic en alguna opción del sidebar, lo cerramos en mobile
+  // Cerrar el sidebar en mobile al pulsar alguna opción
   const handleSidebarOptionClick = () => {
     setSidebarOpen(false);
     setShowMainContent(true);
@@ -45,8 +43,12 @@ export default function SavedPage() {
     router.push("/loginPage");
   };
 
+  // Ir a HomePage
+  const handleGoHome = () => {
+    router.push("/homePage"); // Ajusta la ruta a la que sea tu home
+  };
+
   return (
-    // Estructura general: flex-col en mobile, flex-row en md+
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
       {/* SIDEBAR (desktop) */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
@@ -54,10 +56,11 @@ export default function SavedPage() {
           onOptionClick={handleSidebarOptionClick}
           onLogout={handleLogout}
           userName={userName}
+          onHomeClick={handleGoHome}
         />
       </aside>
 
-      {/* SIDEBAR (mobile) cuando sidebarOpen = true */}
+      {/* SIDEBAR (mobile) */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
@@ -65,14 +68,14 @@ export default function SavedPage() {
               onOptionClick={handleSidebarOptionClick}
               onLogout={handleLogout}
               userName={userName}
+              onHomeClick={handleGoHome}
             />
           </div>
-          {/* Capa para cerrar el menú al hacer clic fuera */}
           <div className="flex-1 bg-white bg-opacity-25" onClick={handleMenuToggle} />
         </div>
       )}
 
-      {/* CONTENIDO PRINCIPAL */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 relative">
         {/* Botón hamburguesa en mobile */}
         <button
@@ -111,15 +114,17 @@ export default function SavedPage() {
   );
 }
 
-// COMPONENTE SIDEBAR
+// SIDEBAR
 function SidebarContent({
   onOptionClick,
   onLogout,
   userName,
+  onHomeClick,
 }: {
   onOptionClick: () => void;
   onLogout: () => void;
   userName: string;
+  onHomeClick: () => void; 
 }) {
   return (
     <div className="flex flex-col justify-between h-full">
@@ -129,6 +134,12 @@ function SidebarContent({
           <SidebarButton icon={<CiCirclePlus />} label="Nueva búsqueda" onClick={onOptionClick} />
           <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onOptionClick} />
           <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
+          {/* Botón de Inicio */}
+          <SidebarButton
+            icon={<CiHome />}
+            label="Inicio"
+            onClick={onHomeClick}
+          />
         </nav>
       </div>
       <div className="space-y-6 mt-8">

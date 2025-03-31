@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { CiCirclePlus, CiFolderOn, CiSearch } from "react-icons/ci";
+import { CiCirclePlus, CiFolderOn, CiSearch, CiHome } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { BsPersonFill, BsHeart, BsHeartFill } from "react-icons/bs";
@@ -33,7 +33,6 @@ export default function HomePage() {
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Estado local para almacenar las propiedades guardadas
   const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
 
   useEffect(() => {
@@ -41,7 +40,6 @@ export default function HomePage() {
     if (storedName) setUserName(storedName);
   }, []);
 
-  // Al montar el componente, leemos de localStorage lo que haya sido guardado
   useEffect(() => {
     const saved = localStorage.getItem("savedBotMessages");
     if (saved) {
@@ -53,14 +51,12 @@ export default function HomePage() {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Manejador para mostrar/ocultar el sidebar (mobile)
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
   };
 
   const handleSidebarOptionClick = () => {
-    // Cerrar el sidebar cuando se da clic en alguna opción en mobile
     setSidebarOpen(false);
     setShowMainContent(true);
   };
@@ -71,6 +67,10 @@ export default function HomePage() {
 
   const handleGoToSaved = () => {
     router.push("/savedPage");
+  };
+
+  const handleGoHome = () => {
+    router.push("/homePage");
   };
 
   const sendMessage = (text: string) => {
@@ -110,20 +110,15 @@ export default function HomePage() {
     sendMessage(message);
   };
 
-  // Manejador para marcar/desmarcar un ítem como favorito (toggle)
   const handleSaveBotMessage = (item: { title: string; link: string }) => {
     setSavedMessages((prev) => {
       const alreadyExists = prev.some((p) => p.title === item.title);
       let newList;
-
       if (alreadyExists) {
-        // Si está guardado, lo quitamos
         newList = prev.filter((p) => p.title !== item.title);
       } else {
-        // Si no está guardado, lo agregamos
         newList = [...prev, item];
       }
-
       localStorage.setItem("savedBotMessages", JSON.stringify(newList));
       return newList;
     });
@@ -137,15 +132,14 @@ export default function HomePage() {
   ];
 
   return (
-    // Contenedor principal
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
-      {/* SIDEBAR (desktop) */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
         <SidebarContent
           onSavedClick={handleGoToSaved}
           onOptionClick={() => {}}
           onLogout={handleLogout}
           userName={userName}
+          onHomeClick={handleGoHome}
         />
       </aside>
 
@@ -157,16 +151,14 @@ export default function HomePage() {
               onOptionClick={handleSidebarOptionClick}
               onLogout={handleLogout}
               userName={userName}
+              onHomeClick={handleGoHome}
             />
           </div>
-          
           <div className="flex-1 bg-white bg-opacity-25" onClick={handleMenuToggle} />
         </div>
       )}
 
-      {/* MAIN (contenido) */}
       <div className="flex-1 relative">
-        {/* Botón hamburguesa (mobile) */}
         <button
           onClick={handleMenuToggle}
           className="md:hidden absolute top-4 left-4 z-50"
@@ -179,10 +171,7 @@ export default function HomePage() {
             <div className="max-w-2xl">
               <h1 className="text-2xl font-semibold">👋 ¡Hola {userName || ""}!</h1>
               <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
-              <p className="text-gray-500 mt-2">
-                Estamos para ayudarte a encontrar tu nuevo hogar.
-              </p>
-
+              <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
               {showCards && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                   {quickOptions.map((opt, idx) => (
@@ -201,10 +190,8 @@ export default function HomePage() {
           </main>
         )}
 
-        {/* Chat scrollable */}
         <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-4 max-w-2xl mx-auto w-full">
           {messages.map((msg, index) => {
-            // Mensaje de texto
             if (!msg.type || msg.type === "text") {
               return (
                 <div
@@ -221,7 +208,6 @@ export default function HomePage() {
               );
             }
 
-            // Mensaje de recomendación
             if (msg.type === "recommendation") {
               return (
                 <div key={index} className="flex justify-start mb-2">
@@ -234,10 +220,7 @@ export default function HomePage() {
                       {msg.items.map((item, i) => {
                         const isSaved = savedMessages.some((p) => p.title === item.title);
                         return (
-                          <li
-                            key={i}
-                            className="mt-1 flex items-center justify-between gap-2"
-                          >
+                          <li key={i} className="mt-1 flex items-center justify-between gap-2">
                             <a
                               href={item.link}
                               target="_blank"
@@ -265,13 +248,11 @@ export default function HomePage() {
                 </div>
               );
             }
-
             return null;
           })}
         </div>
       </div>
 
-      {/* Input fijo en la parte inferior */}
       <div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
           <input
@@ -300,17 +281,19 @@ export default function HomePage() {
   );
 }
 
-// COMPONENTES DEL SIDEBAR
+// SIDEBAR
 function SidebarContent({
   onOptionClick,
   onLogout,
   userName,
   onSavedClick,
+  onHomeClick,
 }: {
   onOptionClick: () => void;
   onLogout: () => void;
   userName: string;
   onSavedClick: () => void;
+  onHomeClick: () => void;
 }) {
   return (
     <div className="flex flex-col justify-between h-full">
@@ -331,6 +314,11 @@ function SidebarContent({
             icon={<CiSearch />}
             label="Buscar"
             onClick={onOptionClick}
+          />
+          <SidebarButton
+            icon={<CiHome />}
+            label="Inicio"
+            onClick={onHomeClick}
           />
         </nav>
       </div>
