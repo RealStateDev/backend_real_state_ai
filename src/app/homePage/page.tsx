@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { BsPersonFill, BsHeart } from "react-icons/bs";
+import { BsPersonFill, BsHeart, BsHeartFill } from "react-icons/bs";
 
 interface BaseMessage {
   sender: "user" | "bot";
@@ -16,7 +16,7 @@ interface TextMessage extends BaseMessage {
 }
 
 interface RecommendationMessage extends BaseMessage {
-  type: "recommendation";
+  type?: "recommendation";
   content: string;
   items: { title: string; link: string }[];
 }
@@ -33,21 +33,34 @@ export default function HomePage() {
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Estado local para almacenar las propiedades guardadas
+  const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
+
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
     if (storedName) setUserName(storedName);
+  }, []);
+
+  // Al montar el componente, leemos de localStorage lo que haya sido guardado
+  useEffect(() => {
+    const saved = localStorage.getItem("savedBotMessages");
+    if (saved) {
+      setSavedMessages(JSON.parse(saved));
+    }
   }, []);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  // Manejador para mostrar/ocultar el sidebar (mobile)
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
   };
 
   const handleSidebarOptionClick = () => {
+    // Cerrar el sidebar cuando se da clic en alguna opción en mobile
     setSidebarOpen(false);
     setShowMainContent(true);
   };
@@ -97,13 +110,23 @@ export default function HomePage() {
     sendMessage(message);
   };
 
+  // Manejador para marcar/desmarcar un ítem como favorito (toggle)
   const handleSaveBotMessage = (item: { title: string; link: string }) => {
-    const saved = localStorage.getItem("savedBotMessages");
-    const current = saved ? JSON.parse(saved) : [];
-    const alreadyExists = current.some((p: any) => p.title === item.title);
-    if (!alreadyExists) {
-      localStorage.setItem("savedBotMessages", JSON.stringify([...current, item]));
-    }
+    setSavedMessages((prev) => {
+      const alreadyExists = prev.some((p) => p.title === item.title);
+      let newList;
+
+      if (alreadyExists) {
+        // Si está guardado, lo quitamos
+        newList = prev.filter((p) => p.title !== item.title);
+      } else {
+        // Si no está guardado, lo agregamos
+        newList = [...prev, item];
+      }
+
+      localStorage.setItem("savedBotMessages", JSON.stringify(newList));
+      return newList;
+    });
   };
 
   const quickOptions = [
@@ -114,27 +137,52 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex">
+    // Contenedor principal
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+      {/* SIDEBAR (desktop) */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
-        <SidebarContent onSavedClick={handleGoToSaved} onOptionClick={() => {}} onLogout={handleLogout} userName={userName} />
+        <SidebarContent
+          onSavedClick={handleGoToSaved}
+          onOptionClick={() => {}}
+          onLogout={handleLogout}
+          userName={userName}
+        />
       </aside>
 
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
-            <SidebarContent onSavedClick={handleGoToSaved} onOptionClick={handleSidebarOptionClick} onLogout={handleLogout} userName={userName} />
+            <SidebarContent
+              onSavedClick={handleGoToSaved}
+              onOptionClick={handleSidebarOptionClick}
+              onLogout={handleLogout}
+              userName={userName}
+            />
           </div>
+          
           <div className="flex-1 bg-white bg-opacity-25" onClick={handleMenuToggle} />
         </div>
       )}
 
-      <div className="flex-1 flex flex-col bg-gray-50">
+      {/* MAIN (contenido) */}
+      <div className="flex-1 relative">
+        {/* Botón hamburguesa (mobile) */}
+        <button
+          onClick={handleMenuToggle}
+          className="md:hidden absolute top-4 left-4 z-50"
+        >
+          <FiMenu className="w-6 h-6 text-gray-700" />
+        </button>
+
         {showMainContent && (
-          <div className="shrink-0 px-6 pt-10 text-center">
-            <div className="max-w-2xl mx-auto">
-              <h1 className="text-2xl font-semibold">👋 {`¡Hola ${userName || "!"}!`}</h1>
+          <main className="flex flex-col items-center justify-center text-center px-6 pt-10 pb-16">
+            <div className="max-w-2xl">
+              <h1 className="text-2xl font-semibold">👋 ¡Hola {userName || ""}!</h1>
               <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
-              <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
+              <p className="text-gray-500 mt-2">
+                Estamos para ayudarte a encontrar tu nuevo hogar.
+              </p>
+
               {showCards && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                   {quickOptions.map((opt, idx) => (
@@ -150,39 +198,65 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-          </div>
+          </main>
         )}
 
+        {/* Chat scrollable */}
         <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-4 max-w-2xl mx-auto w-full">
           {messages.map((msg, index) => {
+            // Mensaje de texto
             if (!msg.type || msg.type === "text") {
               return (
-                <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}>
-                  <div className="px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap bg-gray-200 text-gray-800 max-w-md" dangerouslySetInnerHTML={{ __html: msg.content }} />
+                <div
+                  key={index}
+                  className={`flex ${
+                    msg.sender === "user" ? "justify-end" : "justify-start"
+                  } mb-2`}
+                >
+                  <div
+                    className="px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap bg-gray-200 text-gray-800 max-w-md"
+                    dangerouslySetInnerHTML={{ __html: msg.content }}
+                  />
                 </div>
               );
             }
 
+            // Mensaje de recomendación
             if (msg.type === "recommendation") {
               return (
                 <div key={index} className="flex justify-start mb-2">
                   <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm leading-relaxed max-w-md">
-                    <p><strong>Bot: </strong>{msg.content}</p>
+                    <p>
+                      <strong>Bot: </strong>
+                      {msg.content}
+                    </p>
                     <ul className="mt-2 ml-4 list-disc">
                       {msg.items.map((item, i) => {
-                        const savedList = JSON.parse(localStorage.getItem("savedBotMessages") || "[]");
-                        const isSaved = savedList.some((p: any) => p.title === item.title);
+                        const isSaved = savedMessages.some((p) => p.title === item.title);
                         return (
-                          <li key={i} className="mt-1 flex items-center justify-between gap-2">
-                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                          <li
+                            key={i}
+                            className="mt-1 flex items-center justify-between gap-2"
+                          >
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline"
+                            >
                               {item.title}
                             </a>
-                            <BsHeart
-                              className={`inline-block ml-2 cursor-pointer transition ${
-                                isSaved ? "text-pink-500" : "text-gray-400 hover:text-pink-500"
-                              }`}
-                              onClick={() => handleSaveBotMessage(item)}
-                            />
+                            {isSaved ? (
+                              <BsHeartFill
+                                className="inline-block ml-2 cursor-pointer transition text-pink-500"
+                                onClick={() => handleSaveBotMessage(item)}
+                              />
+                            ) : (
+                              <BsHeart
+                                className="inline-block ml-2 cursor-pointer transition text-gray-400 hover:text-pink-500"
+                                onClick={() => handleSaveBotMessage(item)}
+                              />
+                            )}
                           </li>
                         );
                       })}
@@ -195,37 +269,44 @@ export default function HomePage() {
             return null;
           })}
         </div>
+      </div>
 
-        <div className="shrink-0 bg-white border-t border-gray-200 px-4 py-3">
-          <div className="max-w-2xl mx-auto flex items-center gap-2">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder="¿Qué estás buscando?"
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="button"
-              onClick={handleSend}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Enviar
-            </button>
-          </div>
+      {/* Input fijo en la parte inferior */}
+      <div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
+        <div className="max-w-2xl mx-auto flex items-center gap-2">
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="¿Qué estás buscando?"
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            Enviar
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function SidebarContent({ onOptionClick, onLogout, userName, onSavedClick }: {
+// COMPONENTES DEL SIDEBAR
+function SidebarContent({
+  onOptionClick,
+  onLogout,
+  userName,
+  onSavedClick,
+}: {
   onOptionClick: () => void;
   onLogout: () => void;
   userName: string;
@@ -236,19 +317,33 @@ function SidebarContent({ onOptionClick, onLogout, userName, onSavedClick }: {
       <div>
         <h2 className="text-2xl font-bold mb-8 mt-8">RealState AI</h2>
         <nav className="space-y-4">
-          <SidebarButton icon={<CiCirclePlus />} label="Nueva búsqueda" onClick={onOptionClick} />
-          <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
-          <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
+          <SidebarButton
+            icon={<CiCirclePlus />}
+            label="Nueva búsqueda"
+            onClick={onOptionClick}
+          />
+          <SidebarButton
+            icon={<CiFolderOn />}
+            label="Propiedades guardadas"
+            onClick={onSavedClick}
+          />
+          <SidebarButton
+            icon={<CiSearch />}
+            label="Buscar"
+            onClick={onOptionClick}
+          />
         </nav>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-8">
         <SidebarButton icon={<FiLogOut />} label="Salir" onClick={onLogout} />
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center">
             <BsPersonFill className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-800">{userName || "Usuario"}</p>
+            <p className="text-sm font-medium text-gray-800">
+              {userName || "Usuario"}
+            </p>
             <p className="text-xs text-gray-500">Mi cuenta</p>
           </div>
         </div>
@@ -257,7 +352,15 @@ function SidebarContent({ onOptionClick, onLogout, userName, onSavedClick }: {
   );
 }
 
-function SidebarButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function SidebarButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
