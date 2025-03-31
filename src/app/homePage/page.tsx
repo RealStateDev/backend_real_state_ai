@@ -45,9 +45,8 @@ export default function HomePage() {
   const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const searchParams = useSearchParams(); // para detectar ?sessionId=...
+  const searchParams = useSearchParams();
 
-  // Al montar: leer userName, sessions, saved
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
     if (storedName) setUserName(storedName);
@@ -62,7 +61,6 @@ export default function HomePage() {
     if (saved) setSavedMessages(JSON.parse(saved));
   }, []);
 
-  // Si la URL tiene ?sessionId=..., busca esa sesión y cárgala en currentSession
   useEffect(() => {
     const sId = searchParams.get("sessionId");
     if (sId) {
@@ -72,23 +70,21 @@ export default function HomePage() {
         return;
       }
     }
-    // Si no hay sessionId o no existe, usamos la última (si existe) o creamos nueva
+   
     if (!currentSession) {
       if (sessions.length > 0) {
-        // Toma la última como actual
         setCurrentSession(sessions[sessions.length - 1]);
       } else {
-        startNewSession(); // si no hay nada, crea una
+        startNewSession();
       }
     }
   }, [sessions, currentSession, searchParams]);
 
-  // Cada vez que sessions cambie, guardamos en localStorage
+
   useEffect(() => {
     localStorage.setItem("chatSessions", JSON.stringify(sessions));
   }, [sessions]);
 
-  // Cuando cambia currentSession, la sincronizamos en sessions
   useEffect(() => {
     if (!currentSession) return;
     setSessions((prev) => {
@@ -100,12 +96,11 @@ export default function HomePage() {
     });
   }, [currentSession]);
 
-  // Scroll auto
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
   }, [currentSession]);
 
-  // Manejo del sidebar
+
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
@@ -127,11 +122,10 @@ export default function HomePage() {
   const handleHistoryChats = () => {
     router.push("/chatHistoryPage");
   };
-  
-  // startNewSession -> crea un nuevo chat
+
   const startNewSession = () => {
     const newSession: ChatSession = {
-      id: String(Date.now()), // o crypto.randomUUID()
+      id: String(Date.now()),
       title: "Chat " + new Date().toLocaleString(),
       date: new Date().toISOString(),
       messages: [],
@@ -140,7 +134,7 @@ export default function HomePage() {
     setShowCards(true);
   };
 
-  // Enviar mensaje
+
   const sendMessage = (text: string) => {
     if (!text.trim() || !currentSession) return;
     setShowCards(false);
@@ -155,9 +149,9 @@ export default function HomePage() {
       ...currentSession,
       messages: [...currentSession.messages, userMsg],
     });
-
     setMessage("");
 
+  
     setTimeout(() => {
       const analyzingMsg: TextMessage = {
         sender: "bot",
@@ -199,7 +193,7 @@ export default function HomePage() {
     sendMessage(message);
   };
 
-  // Favoritos
+
   const handleSaveBotMessage = (item: { title: string; link: string }) => {
     setSavedMessages((prev) => {
       const alreadyExists = prev.some((p) => p.title === item.title);
@@ -214,6 +208,7 @@ export default function HomePage() {
     });
   };
 
+ 
   const quickOptions = [
     { title: "Ayudame a buscar una casa", detail: "En Asunción para alquiler" },
     { title: "Quiero comprar un departamento", detail: "En zona Villamorra o Carmelitas" },
@@ -222,21 +217,20 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex ">
-      {/* SIDEBAR DESKTOP */}
+    <div className="h-screen w-screen overflow-hidden flex">
+     
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
-      <SidebarContent
-      onNewChat={startNewSession}
-      onSavedClick={handleGoToSaved}
-      onOptionClick={handleSidebarOptionClick}
-      onLogout={handleLogout}
-      userName={userName}
-      onHomeClick={handleGoHome}
-      handleHistoryChats={handleHistoryChats}
-      />
+        <SidebarContent
+          onNewChat={startNewSession}
+          onSavedClick={handleGoToSaved}
+          onOptionClick={handleSidebarOptionClick}
+          onLogout={handleLogout}
+          userName={userName}
+          onHomeClick={handleGoHome}
+          handleHistoryChats={handleHistoryChats}
+        />
       </aside>
 
-      {/* SIDEBAR MOBILE */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
@@ -254,46 +248,52 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* CONTENIDO PRINCIPAL */}
-      <div className="flex-1 relative">
+     
+      <div className="flex-1 flex flex-col relative">
+       
         <button onClick={handleMenuToggle} className="md:hidden absolute top-4 left-4 z-50">
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
+       
         {showMainContent && currentSession && (
-          <main className="flex flex-col items-center justify-center text-center px-6 pt-10 pb-16">
-            <div className="max-w-2xl">
-              <h1 className="text-2xl font-semibold">👋 ¡Hola {userName || ""}!</h1>
-              <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
-              <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
+          <div className="shrink-0">
+            <main className="flex flex-col items-center text-center px-6 pt-10">
+              <div className="max-w-2xl">
+                <h1 className="text-2xl font-semibold">👋 ¡Hola {userName || ""}!</h1>
+                <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
+                <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
 
-              {showCards && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
-                  {quickOptions.map((opt, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-                      onClick={() => sendMessage(`${opt.title} ${opt.detail}`)}
-                    >
-                      <h3 className="font-semibold text-gray-800">{opt.title}</h3>
-                      <p className="text-sm text-gray-500">{opt.detail}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </main>
+                {showCards && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
+                    {quickOptions.map((opt, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
+                        onClick={() => sendMessage(`${opt.title} ${opt.detail}`)}
+                      >
+                        <h3 className="font-semibold text-gray-800">{opt.title}</h3>
+                        <p className="text-sm text-gray-500">{opt.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </main>
+          </div>
         )}
 
-        <div ref={chatRef} className="flex-1 overflow-y-auto px-6 py-4 max-w-2xl mx-auto w-full">
+     
+        <div
+          ref={chatRef}
+          className="flex-1 overflow-y-auto px-6 pt-4 pb-32 max-w-2xl mx-auto w-full"
+        >
           {currentSession?.messages.map((msg, index) => {
             if (msg.type === "text") {
               return (
                 <div
                   key={index}
-                  className={`flex ${
-                    msg.sender === "user" ? "justify-end" : "justify-start"
-                  } mb-2`}
+                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
                 >
                   <div
                     className="px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap bg-gray-200 text-gray-800 max-w-md"
@@ -347,7 +347,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* INPUT ABAJO */}
+      
       <div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
           <input
@@ -376,12 +376,11 @@ export default function HomePage() {
   );
 }
 
-// SIDEBAR
 function SidebarContent({
   onNewChat,
   onSavedClick,
   onOptionClick,
-  handleHistoryChats, 
+  handleHistoryChats,
   onLogout,
   userName,
   onHomeClick,
