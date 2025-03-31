@@ -7,7 +7,7 @@ body {
   padding: 0;
   height: 100%;
   /* Evita scroll global */
-  overflow: hidden;
+  
 }
 
 :root {

@@ -6,6 +6,7 @@ import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BsPersonFill, BsHeart, BsHeartFill } from "react-icons/bs";
 import { CiChat1 } from "react-icons/ci";
+import "./style.css"
 
 interface ChatSession {
   id: string;
@@ -221,7 +222,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+    <div className="h-screen w-screen overflow-hidden flex ">
       {/* SIDEBAR DESKTOP */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
       <SidebarContent
