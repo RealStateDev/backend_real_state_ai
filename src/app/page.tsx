@@ -1,14 +1,29 @@
 "use client";
 
-import React from "react";
+import React, {useState} from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button"
 import { FiSearch, FiClock, FiThumbsUp, FiStar } from "react-icons/fi";
-
+import { useRouter } from "next/navigation";
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import Image from "next/image";
 
 export default function LandingPage() {
+
+  const [isLoading, setIsLoading ] = useState<boolean>(false);
+
+  const router = useRouter();
+
+  const handleSubmit = () => {
+    setIsLoading(true)
+    setTimeout(() => {
+      router.push("/registerPage");
+    }, 1500);
+    
+  }
+
   return (
     <div className="min-h-screen bg-white-50 text-gray-800 font-sans">
       {/* Navbar */}
@@ -31,12 +46,12 @@ export default function LandingPage() {
           <p className="text-gray-600 text-lg mb-6">
             Encuentra tu próximo hogar con la ayuda de inteligencia artificial entrenada para el mercado inmobiliario paraguayo.
           </p>
-          <Link href="/registerPage">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+       
+          <button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
             Empezar ahora
-            </button>
+          </button>
 
-          </Link>
+         
         </div>
         <div className="mt-10 md:mt-0">
           <Image
@@ -110,20 +125,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Final */}
       <section className="py-20 px-6 text-center bg-gray-50">
         <h3 className="text-3xl font-semibold mb-6">¿Estás listo para encontrar tu próximo hogar?</h3>
-        <Link href="/loginPage">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-3 rounded-lg">
+          <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 py-3 rounded-lg">
             Empezar ahora
           </Button>
-        </Link>
       </section>
 
-      {/* Footer */}
       <footer className="bg-white py-6 border-t text-center text-sm text-gray-500">
         &copy; {new Date().getFullYear()} RealState AI. Todos los derechos reservados.
       </footer>
+      <Backdrop
+        sx={(theme) => ({ color: '#155dfc', zIndex: theme.zIndex.drawer + 1 })}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 }
