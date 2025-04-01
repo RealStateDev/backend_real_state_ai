@@ -98,7 +98,7 @@ export default function LandingPage() {
       {/* Ejemplos */}
       <section id="faq" className="py-20 px-6 bg-white">
         <div className="max-w-5xl mx-auto text-center">
-          <h3 className="text-3xl font-semibold mb-10">Pregúntas que podés hacerle al bot</h3>
+          <h3 className="text-3xl font-semibold mb-10">Preguntas que podés hacerle al bot</h3>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 text-left">
             <div className="bg-white p-4 rounded shadow-sm">¿Qué propiedades hay en Lambaré con patio?</div>
             <div className="bg-white p-4 rounded shadow-sm">Busco departamento en Asunción zona Villa Morra</div>
