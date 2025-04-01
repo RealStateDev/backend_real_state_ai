@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useForm, SubmitHandler } from "react-hook-form";
+import BackdropCus from "@/components/ui/commons/BackdropCus";
+
 
 type Inputs = {
   name: string;
@@ -15,6 +17,7 @@ type Inputs = {
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading ] = useState<boolean>(false);
 
   const {
     register,
@@ -23,12 +26,14 @@ export default function RegisterPage() {
   } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
+    setIsLoading(true)
+    setTimeout(() => {
     // Guardar el nombre del usuario en localStorage
     localStorage.setItem("userName", data.name);
     router.push("/homePage");
+    }, 1500);
   };
   
-
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
@@ -127,6 +132,7 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
+      <BackdropCus color="#155dfc" open={isLoading}></BackdropCus>
     </main>
   );
 }

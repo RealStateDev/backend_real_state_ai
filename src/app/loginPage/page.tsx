@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useForm, SubmitHandler } from "react-hook-form";
+import BackdropCus from "@/components/ui/commons/BackdropCus";
 
 type Inputs = {
   email: string;
@@ -14,6 +15,7 @@ type Inputs = {
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading ] = useState<boolean>(false);
 
   // React Hook Form
   const {
@@ -25,11 +27,14 @@ export default function LoginPage() {
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     // Guardar nombre genérico a partir del email (parte antes del @)
     const defaultName = data.email.split("@")[0];
+    // Guardar el nombre del usuario en localStorage
     localStorage.setItem("userName", defaultName);
+    setIsLoading(true)
+    setTimeout(() => {
     router.push("/homePage");
+    }, 1500);
   };
   
-
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
@@ -99,6 +104,7 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+      <BackdropCus color="#155dfc" open={isLoading}></BackdropCus>
     </main>
   );
 }

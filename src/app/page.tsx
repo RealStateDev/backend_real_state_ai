@@ -5,10 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button"
 import { FiSearch, FiClock, FiThumbsUp, FiStar } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
-
 import Image from "next/image";
+import BackdropCus from "@/components/ui/commons/BackdropCus";
 
 export default function LandingPage() {
 
@@ -23,6 +21,13 @@ export default function LandingPage() {
     }, 1500);
     
   }
+  const handleSubmitLogin = () => {
+    setIsLoading(true)
+    setTimeout(() => {
+      router.push("/loginPage");
+    }, 1500);
+    
+  }
 
   return (
     <div className="min-h-screen bg-white-50 text-gray-800 font-sans">
@@ -33,7 +38,7 @@ export default function LandingPage() {
           <Link href="#about" className="hover:text-blue-600">Sobre</Link>
           <Link href="#features" className="hover:text-blue-600">Soluciones</Link>
           <Link href="#faq" className="hover:text-blue-600">FAQ</Link>
-          <Link href="/loginPage" className="text-blue-600 font-medium hover:underline">Iniciar sesión</Link>
+          <button onClick={handleSubmitLogin} className="text-blue-600 font-medium hover:underline">Iniciar sesión</button>
         </nav>
       </header>
 
@@ -135,12 +140,7 @@ export default function LandingPage() {
       <footer className="bg-white py-6 border-t text-center text-sm text-gray-500">
         &copy; {new Date().getFullYear()} RealState AI. Todos los derechos reservados.
       </footer>
-      <Backdrop
-        sx={(theme) => ({ color: '#155dfc', zIndex: theme.zIndex.drawer + 1 })}
-        open={isLoading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-    </div>
+      <BackdropCus color="#155dfc" open={isLoading} />
+      </div>
   );
 }
