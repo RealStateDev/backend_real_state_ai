@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { CiCirclePlus, CiFolderOn, CiSearch, CiHome } from "react-icons/ci";
+import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BsPersonFill, BsHeart, BsHeartFill } from "react-icons/bs";
-import { CiChat1 } from "react-icons/ci";
-import "./style.css"
+import "./style.css";
 
 interface ChatSession {
   id: string;
@@ -43,64 +42,83 @@ export default function HomePage() {
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
 
   const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
+  const [initialized, setInitialized] = useState(false); // Evita doble carga con Fast Refresh
+
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // 1) Efecto único que corre solo 1 vez al montar (o al refrescar con Fast Refresh).
   useEffect(() => {
+    if (initialized) return; // Si ya corrimos, no volver a correr
+    setInitialized(true);
+
+    // Cargar userName
     const storedName = localStorage.getItem("userName");
     if (storedName) setUserName(storedName);
 
+    // Cargar savedMessages
+    const saved = localStorage.getItem("savedBotMessages");
+    if (saved) setSavedMessages(JSON.parse(saved));
+
+    // Cargar sesiones
     const stored = localStorage.getItem("chatSessions");
+    let parsed: ChatSession[] = [];
     if (stored) {
-      const parsed: ChatSession[] = JSON.parse(stored);
+      parsed = JSON.parse(stored);
       setSessions(parsed);
     }
 
-    const saved = localStorage.getItem("savedBotMessages");
-    if (saved) setSavedMessages(JSON.parse(saved));
-  }, []);
-
-  useEffect(() => {
+    // Revisar si en la URL hay un sessionId
     const sId = searchParams.get("sessionId");
-    if (sId) {
-      const found = sessions.find((s) => s.id === sId);
+    if (sId && parsed.length > 0) {
+      const found = parsed.find((s) => s.id === sId);
       if (found) {
+        console.log("Reanudando sesión con", found.messages.length, "mensajes");
         setCurrentSession(found);
         return;
-      }
-    }
-   
-    if (!currentSession) {
-      if (sessions.length > 0) {
-        setCurrentSession(sessions[sessions.length - 1]);
       } else {
-        startNewSession();
+        console.log("No se encontró la sesión con id=", sId);
       }
     }
-  }, [sessions, currentSession, searchParams]);
 
+    // Si no hay sessionId o no se encontró,
+    // usar la última sesión si existe, o crear nueva
+    if (parsed.length > 0) {
+      setCurrentSession(parsed[parsed.length - 1]);
+    } else {
+      startNewSession();
+    }
+  }, [initialized, searchParams]);
 
+  // 2) Cada vez que sessions cambie, guardar en localStorage
   useEffect(() => {
+    if (!initialized) return; // Evita que se guarde antes de tiempo
     localStorage.setItem("chatSessions", JSON.stringify(sessions));
-  }, [sessions]);
+    console.log("Sessions updated:", sessions);
+  }, [sessions, initialized]);
 
+  // 3) Cada vez que currentSession cambie, meterla en sessions
   useEffect(() => {
     if (!currentSession) return;
     setSessions((prev) => {
       const idx = prev.findIndex((s) => s.id === currentSession.id);
       const updated = [...prev];
-      if (idx >= 0) updated[idx] = currentSession;
-      else updated.push(currentSession);
+      if (idx >= 0) {
+        updated[idx] = currentSession;
+      } else {
+        updated.push(currentSession);
+      }
       return updated;
     });
   }, [currentSession]);
 
+  // 4) Scroll automático cuando cambian los mensajes
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
-  }, [currentSession]);
+  }, [currentSession?.messages]);
 
-
+  // Funciones sidebar
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
@@ -109,20 +127,12 @@ export default function HomePage() {
     setSidebarOpen(false);
     setShowMainContent(true);
   };
+  const handleLogout = () => router.push("/loginPage");
+  const handleGoToSaved = () => router.push("/savedPage");
+  const handleGoHome = () => router.push("/homePage");
+  const handleHistoryChats = () => router.push("/chatHistoryPage");
 
-  const handleLogout = () => {
-    router.push("/loginPage");
-  };
-  const handleGoToSaved = () => {
-    router.push("/savedPage");
-  };
-  const handleGoHome = () => {
-    router.push("/homePage");
-  };
-  const handleHistoryChats = () => {
-    router.push("/chatHistoryPage");
-  };
-
+  // Crear sesión nueva
   const startNewSession = () => {
     const newSession: ChatSession = {
       id: String(Date.now()),
@@ -134,7 +144,7 @@ export default function HomePage() {
     setShowCards(true);
   };
 
-
+  // Enviar mensaje
   const sendMessage = (text: string) => {
     if (!text.trim() || !currentSession) return;
     setShowCards(false);
@@ -151,7 +161,7 @@ export default function HomePage() {
     });
     setMessage("");
 
-  
+    // Bot simulado
     setTimeout(() => {
       const analyzingMsg: TextMessage = {
         sender: "bot",
@@ -193,7 +203,7 @@ export default function HomePage() {
     sendMessage(message);
   };
 
-
+  // Guardar recomendación
   const handleSaveBotMessage = (item: { title: string; link: string }) => {
     setSavedMessages((prev) => {
       const alreadyExists = prev.some((p) => p.title === item.title);
@@ -208,7 +218,7 @@ export default function HomePage() {
     });
   };
 
- 
+  // Quick Options
   const quickOptions = [
     { title: "Ayudame a buscar una casa", detail: "En Asunción para alquiler" },
     { title: "Quiero comprar un departamento", detail: "En zona Villamorra o Carmelitas" },
@@ -218,7 +228,7 @@ export default function HomePage() {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex">
-     
+      {/* SIDEBAR (desktop) */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
         <SidebarContent
           onNewChat={startNewSession}
@@ -231,6 +241,7 @@ export default function HomePage() {
         />
       </aside>
 
+      {/* SIDEBAR (mobile) */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
@@ -248,21 +259,21 @@ export default function HomePage() {
         </div>
       )}
 
-     
+      {/* CONTENIDO PRINCIPAL */}
       <div className="flex-1 flex flex-col relative">
-       
         <button onClick={handleMenuToggle} className="md:hidden absolute top-4 left-4 z-50">
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
-       
         {showMainContent && currentSession && (
           <div className="shrink-0">
             <main className="flex flex-col items-center text-center px-6 pt-10">
               <div className="max-w-2xl">
                 <h1 className="text-2xl font-semibold">👋 ¡Hola {userName || ""}!</h1>
                 <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
-                <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
+                <p className="text-gray-500 mt-2">
+                  Estamos para ayudarte a encontrar tu nuevo hogar.
+                </p>
 
                 {showCards && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
@@ -283,7 +294,7 @@ export default function HomePage() {
           </div>
         )}
 
-     
+        {/* ZONA DE CHAT */}
         <div
           ref={chatRef}
           className="flex-1 overflow-y-auto px-6 pt-4 pb-32 max-w-2xl mx-auto w-full"
@@ -295,17 +306,17 @@ export default function HomePage() {
                   key={index}
                   className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}
                 >
-                          <div
-          className={`px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap max-w-md
-            ${
-              msg.sender === "user"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-800"
-            }
-          `}
-          dangerouslySetInnerHTML={{ __html: msg.content }}
-        />
-      </div>
+                  <div
+                    className={`px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap max-w-md
+                      ${
+                        msg.sender === "user"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-800"
+                      }
+                    `}
+                    dangerouslySetInnerHTML={{ __html: msg.content }}
+                  />
+                </div>
               );
             }
             if (msg.type === "recommendation") {
@@ -353,7 +364,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      
+      {/* INPUT ABAJO */}
       <div className="fixed bottom-0 left-0 right-0 md:ml-64 bg-white border-t border-gray-200 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
           <input
@@ -382,6 +393,7 @@ export default function HomePage() {
   );
 }
 
+// SIDEBAR
 function SidebarContent({
   onNewChat,
   onSavedClick,
