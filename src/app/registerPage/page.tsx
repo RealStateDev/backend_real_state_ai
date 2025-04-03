@@ -3,21 +3,15 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useForm, SubmitHandler } from "react-hook-form";
 import BackdropCus from "@/components/ui/commons/BackdropCus";
-
-
-type Inputs = {
-  name: string;
-  email: string;
-  password: string;
-};
+import InputTextCom from "@/components/ui/commons/InputTextCom";
+import InputPassCom from "@/components/ui/commons/InputPassCom";
+import { Inputs } from "@/types/generalTypes";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading ] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const {
     register,
@@ -26,14 +20,14 @@ export default function RegisterPage() {
   } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    setIsLoading(true)
+    setIsLoading(true);
     setTimeout(() => {
-    // Guardar el nombre del usuario en localStorage
-    localStorage.setItem("userName", data.name);
-    router.push("/homePage");
+      // Guardar el nombre del usuario en localStorage
+      localStorage.setItem("userName", data.name);
+      router.push("/homePage");
     }, 1500);
   };
-  
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
@@ -48,32 +42,25 @@ export default function RegisterPage() {
         {/* Formulario */}
         <form onSubmit={handleSubmit(onSubmit)}>
           {/* Nombre */}
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-gray-700 font-medium mb-1">
-              Nombre
-            </label>
-            <input
+          <>
+            <InputTextCom
               id="name"
+              labelText="Nombre"
               type="text"
               placeholder="Tu nombre completo"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
               {...register("name", { required: "Este campo es obligatorio" })}
             />
             {errors.name && (
               <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
             )}
-          </div>
-
+          </>
           {/* Email */}
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700 font-medium mb-1">
-              Correo electrónico
-            </label>
-            <input
+          <>
+            <InputTextCom
               id="email"
+              labelText="Correo electrónico"
               type="email"
               placeholder="usuario@ejemplo.com"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
               {...register("email", {
                 required: "Este campo es obligatorio",
                 pattern: {
@@ -83,40 +70,32 @@ export default function RegisterPage() {
               })}
             />
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
+              </p>
             )}
-          </div>
-
+          </>
           {/* Contraseña */}
-          <div className="mb-6 relative">
-            <label htmlFor="password" className="block text-gray-700 font-medium mb-1">
-              Contraseña
-            </label>
-            <input
+          <>
+            <InputPassCom
               id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="********"
-              className="w-full border border-gray-300 rounded px-3 py-2 pr-10 focus:outline-none focus:border-blue-500"
+              labelText="Contraseña"
               {...register("password", {
                 required: "Este campo es obligatorio",
                 pattern: {
-                  value: /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
+                  value:
+                    /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
                   message:
                     "Debe tener 8+ caracteres, una mayúscula, un número y un símbolo",
                 },
               })}
             />
-            <div
-              className="absolute top-9 right-3 cursor-pointer text-gray-500"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </div>
             {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
             )}
-          </div>
-
+          </>
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-semibold transition-colors"

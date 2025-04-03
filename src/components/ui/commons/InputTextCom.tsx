@@ -1,11 +1,7 @@
 import React, { forwardRef } from "react";
+import { InputTextCom } from "@/types/generalTypes";
 
-interface InputTextComProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  labelText: string;
-  id: string;
-}
-
-const InputTextComProps = forwardRef<HTMLInputElement, InputTextComProps>(
+const InputTextComProps = forwardRef<HTMLInputElement, InputTextCom>(
   ({ labelText, id, ...rest }, ref) => (
     <div className="mb-4">
       

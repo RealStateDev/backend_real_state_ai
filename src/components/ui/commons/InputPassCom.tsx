@@ -1,13 +1,8 @@
 import React, { forwardRef, useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { InputTextCom } from "@/types/generalTypes";
 
-interface InputPassComProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  labelText: string;
-  id: string;
-}
-
-const InputPassCom = forwardRef<HTMLInputElement, InputPassComProps>(
+const InputPassCom = forwardRef<HTMLInputElement, InputTextCom>(
   ({ labelText, id, ...rest }, ref) => 
   {
      const [showPassword, setShowPassword] = useState(false);
