@@ -6,6 +6,8 @@ import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useForm, SubmitHandler } from "react-hook-form";
 import BackdropCus from "@/components/ui/commons/BackdropCus";
+import InputTextCom from "@/components/ui/commons/InputTextCom";
+import InputPassCom from "@/components/ui/commons/InputPassCom";
 
 type Inputs = {
   email: string;
@@ -15,7 +17,7 @@ type Inputs = {
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading ] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // React Hook Form
   const {
@@ -29,12 +31,12 @@ export default function LoginPage() {
     const defaultName = data.email.split("@")[0];
     // Guardar el nombre del usuario en localStorage
     localStorage.setItem("userName", defaultName);
-    setIsLoading(true)
+    setIsLoading(true);
     setTimeout(() => {
-    router.push("/homePage");
+      router.push("/homePage");
     }, 1500);
   };
-  
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
@@ -45,44 +47,34 @@ export default function LoginPage() {
         {/* Formulario */}
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700 font-medium mb-1">
-              Correo electrónico
-            </label>
-            <input
+            <InputTextCom
               id="email"
               type="email"
               placeholder="Correo electrónico"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              labelText="Correo electrónico"
               {...register("email", { required: "Este campo es obligatorio" })}
             />
-            {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
-          </div>
-
-          <div className="mb-2">
-            <label htmlFor="password" className="block text-gray-700 font-medium mb-1">
-              Contraseña
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Contraseña"
-                className="w-full border border-gray-300 rounded px-3 py-2 pr-10 focus:outline-none focus:border-blue-500"
-                {...register("password", { required: "Este campo es obligatorio" })}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-2.5 text-gray-500"
-              >
-                {showPassword ? <FiEyeOff /> : <FiEye />}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+            {errors.email && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
+          
+          <>
+            <InputPassCom id="password" labelText="Contraseña"
+              {...register("password", {
+                required: "Este campo es obligatorio",
+              })}
+            />
 
+            {errors.password && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+          </>
+          
           <div className="flex items-center justify-between mb-6">
             <a href="#" className="text-sm text-blue-600 hover:underline">
               Olvidé mi contraseña
