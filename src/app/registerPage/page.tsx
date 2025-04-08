@@ -8,6 +8,7 @@ import BackdropCus from "@/components/ui/commons/BackdropCus";
 import InputTextCom from "@/components/ui/commons/InputTextCom";
 import InputPassCom from "@/components/ui/commons/InputPassCom";
 import { Inputs } from "@/types/generalTypes";
+import { registeruserService } from "@/services/registeruserService";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,13 +20,20 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<Inputs>();
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setIsLoading(true);
-    setTimeout(() => {
-      // Guardar el nombre del usuario en localStorage
-      localStorage.setItem("userName", data.name);
-      router.push("/homePage");
-    }, 1500);
+    try 
+    {
+      const register = await registeruserService({nombre:data.name,email:data.email,password:data.password});
+      console.log(register);
+      setTimeout(() => {
+        // Guardar el nombre del usuario en localStorage
+        localStorage.setItem("userName", data.name);
+        router.push("/homePage");
+      }, 1000);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

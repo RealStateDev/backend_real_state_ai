@@ -8,6 +8,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import BackdropCus from "@/components/ui/commons/BackdropCus";
 import InputTextCom from "@/components/ui/commons/InputTextCom";
 import InputPassCom from "@/components/ui/commons/InputPassCom";
+import { loginuserService } from "@/services/loginuserService";
 
 type Inputs = {
   email: string;
@@ -26,15 +27,22 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<Inputs>();
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
     // Guardar nombre genérico a partir del email (parte antes del @)
     const defaultName = data.email.split("@")[0];
     // Guardar el nombre del usuario en localStorage
     localStorage.setItem("userName", defaultName);
     setIsLoading(true);
-    setTimeout(() => {
-      router.push("/homePage");
-    }, 1500);
+    try 
+    {
+      const loginData = await loginuserService({email:data.email,password:data.password});
+      console.log(loginData);
+      setTimeout(() => {
+        router.push("/homePage");
+      }, 1000);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

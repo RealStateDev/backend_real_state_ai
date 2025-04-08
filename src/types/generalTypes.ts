@@ -43,3 +43,9 @@ export  interface SidebarProps {
   onHomeClick: () => void;
   userName: string;
 }
+
+export interface Usertype {
+  nombre?: string;
+  email: string;
+  password: string;
+}
