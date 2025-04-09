@@ -1,4 +1,6 @@
 import { Usertype } from "@/types/generalTypes"
+import { serialize } from "cookie";
+import { NextResponse } from "next/server";
 
 export async function loginuserService(req:Usertype) 
 {
@@ -15,7 +17,24 @@ export async function loginuserService(req:Usertype)
         {
         throw new Error(data||'error en login');
       }  
-      return data;
+
+
+
+      const serialized = serialize("tokenJWT", data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+      });
+
+      const headers = { "set-Cookie": serialized };
+
+     // return data;
+
+     return NextResponse.json({ message: "Login exitoso", code:0}, { headers });
+
+      
     } catch (error) {
         console.error(error)
     }
