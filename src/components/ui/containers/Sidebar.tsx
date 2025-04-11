@@ -13,6 +13,7 @@ export default function Sidebar({
   handleHistoryChats, 
   onLogout, 
   onHomeClick, 
+  suscriptionView,
   userName 
 }: SidebarProps) {
   return (
@@ -36,6 +37,12 @@ export default function Sidebar({
           <div>
             <p className="text-sm font-medium text-gray-800">{userName || "Usuario"}</p>
             <p className="text-xs text-gray-500">Mi cuenta</p>
+            <button 
+              onClick={suscriptionView}
+              className="text-xs text-gray-500 hover:underline"
+            >
+              Actualizar plan
+            </button>
           </div>
         </div>
       </div>

@@ -29,7 +29,7 @@ export interface ChatMessage {
 export interface ChatWindowProps {
   messages: ChatMessage[];
   savedMessages: { title: string; link: string }[];
-  chatRef: React.RefObject<HTMLDivElement | null>; // ✅ Aquí está el cambio
+  chatRef: React.RefObject<HTMLDivElement | null>; 
   onSaveBotMessage: (item: { title: string; link: string }) => void;
 }
 
@@ -41,6 +41,7 @@ export  interface SidebarProps {
   handleHistoryChats: () => void;
   onLogout: () => void;
   onHomeClick: () => void;
+  suscriptionView: () => void;
   userName: string;
 }
 
