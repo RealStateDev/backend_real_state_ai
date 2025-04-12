@@ -8,6 +8,7 @@ import ChatWindow from "@/components/ui/containers/ChatWindow";
 import ChatInput from "@/components/ui/containers/ChatInput";
 import { ChatMessage } from "@/types/generalTypes";
 import "./style.css";
+import { useUser } from "@/contexts/userContext";
 
 interface ChatSession {
   id: string;
@@ -17,9 +18,14 @@ interface ChatSession {
 }
 
 export default function HomePage() {
+
+  //llamo al contexto 
+  const { user } = useUser();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState(user?.nombre || "no data");
+
   const [message, setMessage] = useState("");
   const [showCards, setShowCards] = useState(true);
 
@@ -36,8 +42,8 @@ export default function HomePage() {
     if (initialized) return;
     setInitialized(true);
 
-    const storedName = localStorage.getItem("userName");
-    if (storedName) setUserName(storedName);
+   /* const storedName = localStorage.getItem("userName");
+    if (storedName) setUserName(storedName);*/
 
     const saved = localStorage.getItem("savedBotMessages");
     if (saved) setSavedMessages(JSON.parse(saved));

@@ -8,7 +8,8 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import BackdropCus from "@/components/ui/commons/BackdropCus";
 import InputTextCom from "@/components/ui/commons/InputTextCom";
 import InputPassCom from "@/components/ui/commons/InputPassCom";
-import { loginuserService } from "@/services/loginuserService";
+//import { loginuserService } from "@/services/loginuserService";
+import loginUserClientService from "@/services/loginUserClientService";
 
 type Inputs = {
   email: string;
@@ -35,11 +36,15 @@ export default function LoginPage() {
     setIsLoading(true);
     try 
     {
-      const loginData = await loginuserService({email:data.email,password:data.password});
-      console.log(loginData);
-      setTimeout(() => {
+      const loginData = await loginUserClientService({email:data.email,password:data.password});
+      
+      if (loginData.code == 0) {
+        setTimeout(() => {
         router.push("/homePage");
       }, 1000);
+      }
+      
+      
     } catch (error) {
       console.error(error);
     }
