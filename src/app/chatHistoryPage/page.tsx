@@ -54,7 +54,7 @@ export default function ChatHistoryPage() {
   };
   const handleSidebarOptionClick = () => {
     setSidebarOpen(false);
-    setShowMainContent(true);
+    setShowMainContent
   };
   const handleLogout = () => router.push("/loginPage");
   const handleGoToSaved = () => router.push("/savedPage");

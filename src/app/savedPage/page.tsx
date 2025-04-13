@@ -5,14 +5,42 @@ import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { BsPersonFill } from "react-icons/bs";
 import { useRouter } from "next/navigation";
+import Sidebar from "@/components/ui/containers/Sidebar";
+import { useUser } from "@/contexts/userContext";
+
+// Repite la misma interfaz
+interface ChatSession {
+  id: string;
+  title: string;
+  date: string;
+  messages: any[];
+}
 
 export default function SavedPage() {
+  const { user } = useUser();
+  const userName = user?.nombre || null; // Puede ser string o null
   const [savedBotMessages, setSavedBotMessages] = useState<{ title: string; link: string }[]>([]);
-  const [userName, setUserName] = useState<string>("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
+  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+  const [showCards, setShowCards] = useState(true);
+
+
 
   const router = useRouter();
+
+
+  const startNewSession = () => {
+    const newSession: ChatSession = {
+      id: String(Date.now()),
+      title: "Chat " + new Date().toLocaleString(),
+      date: new Date().toISOString(),
+      messages: [],
+    };
+    setCurrentSession(newSession);
+    setShowCards(true);
+    router.push("/homePage")// luego de 
+  };
 
   // Al montar, obtenemos las propiedades guardadas y el nombre de usuario
   useEffect(() => {
@@ -21,10 +49,10 @@ export default function SavedPage() {
       setSavedBotMessages(JSON.parse(saved));
     }
 
-    const storedName = localStorage.getItem("userName");
+    /*const storedName = localStorage.getItem("userName");
     if (storedName) {
       setUserName(storedName);
-    }
+    }*/
   }, []);
 
   // Toggle para el sidebar en mobile
@@ -40,30 +68,31 @@ export default function SavedPage() {
   };
 
   // Navegación
-  const handleLogout = () => {
-    router.push("/loginPage");
-  };
-  const handleGoHome = () => {
-    router.push("/homePage"); 
-  };
-  const handleNewChat = () => {
-    router.push("/homePage"); 
-  };
-  const handleHistoryChats = () => {
-    router.push("/chatHistoryPage");
-  };
+  const handleLogout = () => router.push("/loginPage");
+  const handleGoToSaved = () => router.push("/savedPage");
+  const handleGoHome = () => router.push("/homePage");
+  const handleHistoryChats = () => router.push("/chatHistoryPage");
+  const suscriptionsView = () => router.push("/suscriptionsPage");
+
+
+  if(!userName) {
+    return  null;
+  }
+
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
       {/* SIDEBAR DESKTOP */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
-        <SidebarContent
-          onNewChat={handleNewChat}
-          onHistoryChats={handleHistoryChats}
-          onSavedClick={handleSidebarOptionClick}
+        <Sidebar
+          onNewChat={startNewSession}
+          onSavedClick={handleGoToSaved}
+          onOptionClick={handleSidebarOptionClick}
           onLogout={handleLogout}
           userName={userName}
           onHomeClick={handleGoHome}
+          handleHistoryChats={handleHistoryChats}
+          suscriptionView={suscriptionsView}
         />
       </aside>
 
@@ -71,13 +100,15 @@ export default function SavedPage() {
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
-            <SidebarContent
-              onNewChat={handleNewChat}
-              onHistoryChats={handleHistoryChats}
-              onSavedClick={handleSidebarOptionClick}
+            <Sidebar
+              onNewChat={startNewSession}
+              onSavedClick={handleGoToSaved}
+              onOptionClick={handleSidebarOptionClick}
               onLogout={handleLogout}
               userName={userName}
               onHomeClick={handleGoHome}
+              handleHistoryChats={handleHistoryChats}
+              suscriptionView={suscriptionsView}
             />
           </div>
           {/* Clic fuera para cerrar */}
@@ -127,69 +158,3 @@ export default function SavedPage() {
   );
 }
 
-// SIDEBAR
-function SidebarContent({
-  onNewChat,
-  onHistoryChats,
-  onSavedClick,
-  onLogout,
-  userName,
-  onHomeClick,
-}: {
-  onNewChat: () => void;
-  onHistoryChats: () => void;
-  onSavedClick: () => void;
-  onLogout: () => void;
-  userName: string;
-  onHomeClick: () => void;
-}) {
-  return (
-    <div className="flex flex-col justify-between h-full">
-      <div>
-        <h2 className="text-2xl font-bold mb-8 mt-8">RealState AI</h2>
-        <nav className="space-y-4">
-        <SidebarButton icon={<CiCirclePlus />} label="Nuevo chat" onClick={onNewChat} />
-        <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
-        <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onSavedClick} />
-        <SidebarButton icon={<CiChat1 />} label="Historial de Chats" onClick={onHistoryChats} />
-        <SidebarButton icon={<CiHome />} label="Inicio" onClick={onHomeClick} />
-        </nav>
-      </div>
-      <div className="space-y-6 mt-8">
-        <SidebarButton icon={<FiLogOut />} label="Salir" onClick={onLogout} />
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center">
-            <BsPersonFill className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-800">
-              {userName || "Usuario"}
-            </p>
-            <p className="text-xs text-gray-500">Mi cuenta</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// BOTÓN SIDEBAR
-function SidebarButton({
-  icon,
-  label,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition whitespace-nowrap"
-    >
-      <div className="text-blue-400 w-5 h-5">{icon}</div>
-      <span>{label}</span>
-    </button>
-  );
-}

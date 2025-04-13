@@ -15,7 +15,7 @@ export async function loginuserService(req:Usertype)
       const data = await resp.json();
       if (!resp.ok) 
         {
-        throw new Error(data||'error en login');
+        throw new Error('error en login');
       }  
 
 
