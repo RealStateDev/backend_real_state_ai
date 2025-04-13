@@ -38,11 +38,9 @@ export default function LoginPage() {
     {
       const loginData = await loginUserClientService({email:data.email,password:data.password});
       
-      if (loginData.code == 0) {
         setTimeout(() => {
         router.push("/homePage");
       }, 1000);
-      }
       
       
     } catch (error) {

@@ -18,17 +18,13 @@ interface ChatSession {
 }
 
 export default function HomePage() {
-
-  //llamo al contexto 
+  // Llamada al contexto de usuario
   const { user } = useUser();
-
+  const userName = user?.nombre || null; // Puede ser string o null
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
-  const [userName, setUserName] = useState(user?.nombre || "no data");
-
   const [message, setMessage] = useState("");
   const [showCards, setShowCards] = useState(true);
-
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
@@ -41,20 +37,17 @@ export default function HomePage() {
   useEffect(() => {
     if (initialized) return;
     setInitialized(true);
-
-   /* const storedName = localStorage.getItem("userName");
-    if (storedName) setUserName(storedName);*/
-
+    
     const saved = localStorage.getItem("savedBotMessages");
     if (saved) setSavedMessages(JSON.parse(saved));
-
+    
     const stored = localStorage.getItem("chatSessions");
     let parsed: ChatSession[] = [];
     if (stored) {
       parsed = JSON.parse(stored);
       setSessions(parsed);
     }
-
+    
     const sId = searchParams.get("sessionId");
     if (sId && parsed.length > 0) {
       const found = parsed.find((s) => s.id === sId);
@@ -184,9 +177,12 @@ export default function HomePage() {
     { title: "Busco una oficina para alquilar", detail: "Con estacionamiento incluido" },
   ];
 
+  // Si no hay userName, no se renderiza el contenido
+  if (!userName) return null;
+
   return (
     <div className="h-screen w-screen overflow-hidden flex">
-      {/* Sidebar */}
+      {/* Sidebar para pantallas grandes */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
         <Sidebar
           onNewChat={startNewSession}
@@ -200,6 +196,7 @@ export default function HomePage() {
         />
       </aside>
 
+      {/* Sidebar para pantallas pequeñas */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
@@ -227,7 +224,7 @@ export default function HomePage() {
           <div className="shrink-0">
             <main className="flex flex-col items-center text-center px-6 pt-10">
               <div className="max-w-2xl">
-                <h1 className="text-2xl font-semibold">👋 ¡Hola {userName || ""}!</h1>
+                <h1 className="text-2xl font-semibold">👋 ¡Hola {userName}!</h1>
                 <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
                 <p className="text-gray-500 mt-2">
                   Estamos para ayudarte a encontrar tu nuevo hogar.
