@@ -47,6 +47,7 @@ export default function ChatHistoryPage() {
     };
     setCurrentSession(newSession);
     setShowCards(true);
+    router.push("/homePage");
   };
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);

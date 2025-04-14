@@ -25,7 +25,6 @@ export default function Sidebar({
           <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
           <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
           <SidebarButton icon={<CiChat1 />} label="Historial de Chats" onClick={handleHistoryChats} />
-          <SidebarButton icon={<CiHome />} label="Inicio" onClick={onHomeClick} />
         </nav>
       </div>
       <div className="space-y-6 mt-8">
