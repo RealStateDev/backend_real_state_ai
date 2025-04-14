@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef  } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,8 @@ export default function ChatHistoryPage() {
   const [showCards, setShowCards] = useState(true);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   const router = useRouter();
 
   // Al montar, leemos userName y chatSessions
@@ -38,6 +40,14 @@ export default function ChatHistoryPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  }, [sessions]);
   const startNewSession = () => {
     const newSession: ChatSession = {
       id: String(Date.now()),
@@ -117,8 +127,8 @@ export default function ChatHistoryPage() {
         </button>
 
         {showMainContent && (
-          <main className="px-6 py-10 max-w-3xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Historial de Chats</h1>
+          
+          <main ref={scrollRef} className="px-6 py-10 max-w-3xl mx-auto overflow-y-auto" style={{ maxHeight: "80vh" }}>            <h1 className="text-3xl font-bold mb-6">Historial de Chats</h1>
             {sessions.length === 0 ? (
               <p className="text-gray-500">No hay chats guardados.</p>
             ) : (
