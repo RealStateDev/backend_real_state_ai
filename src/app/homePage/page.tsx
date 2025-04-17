@@ -9,6 +9,8 @@ import ChatInput from "@/components/ui/containers/ChatInput";
 import { ChatMessage } from "@/types/generalTypes";
 import "./style.css";
 import { useUser } from "@/contexts/userContext";
+import usePropertiesHook from "@/hooks/usePropertiesHook";
+import useFavoriteHook from "@/hooks/useFavoriteById";
 
 interface ChatSession {
   id: string;
@@ -21,6 +23,7 @@ export default function HomePage() {
   // Llamada al contexto de usuario
   const { user } = useUser();
   const userName = user?.nombre || null; // Puede ser string o null
+  const {favorites,favoriteLoading,favoriteError} = useFavoriteHook(user?.id ?? 0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
   const [message, setMessage] = useState("");
@@ -29,6 +32,7 @@ export default function HomePage() {
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const {properties,isLoading,error} = usePropertiesHook();
 
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
