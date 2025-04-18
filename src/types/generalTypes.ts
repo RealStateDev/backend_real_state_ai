@@ -46,7 +46,7 @@ export  interface SidebarProps {
 }
 
 export interface Usertype {
-  id: number;
+  id?: number;
   nombre?: string;
   email: string;
   password: string;

@@ -1,14 +1,13 @@
 "use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useForm, SubmitHandler } from "react-hook-form";
 import BackdropCus from "@/components/ui/commons/BackdropCus";
 import InputTextCom from "@/components/ui/commons/InputTextCom";
 import InputPassCom from "@/components/ui/commons/InputPassCom";
-//import { loginuserService } from "@/services/loginuserService";
 import loginUserClientService from "@/services/loginUserClientService";
 
 type Inputs = {
@@ -20,8 +19,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [formError, setFormError] = useState<string>("");   // ⬅️ nuevo
 
-  // React Hook Form
   const {
     register,
     handleSubmit,
@@ -29,22 +28,20 @@ export default function LoginPage() {
   } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    // Guardar nombre genérico a partir del email (parte antes del @)
-    const defaultName = data.email.split("@")[0];
-    // Guardar el nombre del usuario en localStorage
-    localStorage.setItem("userName", defaultName);
+    setFormError("");
     setIsLoading(true);
-    try 
-    {
-      const loginData = await loginUserClientService({email:data.email,password:data.password});
-      
-        setTimeout(() => {
-        router.push("/homePage");
-      }, 1000);
-      
-      
-    } catch (error) {
-      console.error(error);
+
+    try {
+      await loginUserClientService({
+        email: data.email,
+        password: data.password,
+      });
+
+      router.push("/homePage");
+    } catch (error: any) {
+      setFormError(error.message || "Credenciales incorrectas");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,26 +68,30 @@ export default function LoginPage() {
               </p>
             )}
           </div>
-          
-          <>
-            <InputPassCom id="password" labelText="Contraseña"
-              {...register("password", {
-                required: "Este campo es obligatorio",
-              })}
-            />
 
-            {errors.password && (
-                <p className="text-sm text-red-500 mt-1">
-                  {errors.password.message}
-                </p>
-              )}
-          </>
-          
+          <InputPassCom
+            id="password"
+            labelText="Contraseña"
+            {...register("password", { required: "Este campo es obligatorio" })}
+          />
+          {errors.password && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.password.message}
+            </p>
+          )}
+
           <div className="flex items-center justify-between mb-6">
             <a href="#" className="text-sm text-blue-600 hover:underline">
               Olvidé mi contraseña
             </a>
           </div>
+
+          {/* ⛔ Mensaje de error global */}
+          {formError && (
+            <p className="text-center text-sm text-red-600 mb-4">
+              {formError}
+            </p>
+          )}
 
           <button
             type="submit"
@@ -107,7 +108,8 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-      <BackdropCus color="#155dfc" open={isLoading}></BackdropCus>
+
+      <BackdropCus color="#155dfc" open={isLoading} />
     </main>
   );
 }

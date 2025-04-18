@@ -1,26 +1,17 @@
-import { Usertype } from "@/types/generalTypes"
+import { Usertype } from "@/types/generalTypes";
 
-export default async function loginUserClientService(user:Usertype ) {
- 
-  try {
-    const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, password: user.password }),
-      });
+export default async function loginUserClientService(user: Usertype) {
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: user.email, password: user.password }),
+  });
 
-      if (!res.ok) {
-        throw new Error("Error al login client");
-      }
-      
-      const data = await res.json();
-      
-      return data;
-
-  } catch (error: any) {
-    console.error(error);
+  // Si falla, leemos el JSON para obtener el mensaje del servidor
+  if (!res.ok) {
+    const errJson = await res.json().catch(() => ({}));
+    throw new Error(errJson.message || "Credenciales incorrectas");
   }
-   
 
-
+  return res.json();     
 }

@@ -3,5 +3,5 @@ import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  return await loginuserService(body);
+  return loginuserService(body);   // sin await extra
 }
