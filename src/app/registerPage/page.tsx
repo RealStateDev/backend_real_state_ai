@@ -29,7 +29,7 @@ export default function RegisterPage() {
       setTimeout(() => {
         // Guardar el nombre del usuario en localStorage
         localStorage.setItem("userName", data.name);
-        router.push("/homePage");
+        router.push("/loginPage");
       }, 1000);
     } catch (error) {
       console.error(error);

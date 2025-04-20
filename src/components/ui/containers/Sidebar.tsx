@@ -5,17 +5,27 @@ import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons
 import { FiLogOut } from "react-icons/fi";
 import { BsPersonFill } from "react-icons/bs";
 import { SidebarProps } from "@/types/generalTypes";
+import logoutClientService from "@/services/logoutClientService";
+import { useRouter } from "next/navigation";
+
 
 export default function Sidebar({ 
   onNewChat, 
   onSavedClick, 
   onOptionClick, 
   handleHistoryChats, 
-  onLogout, 
   onHomeClick, 
   suscriptionView,
   userName 
 }: SidebarProps) {
+
+    const router = useRouter();
+
+  const handleLogout = async () =>{
+    await logoutClientService();
+    router.push("/loginPage"); 
+  } 
+
   return (
     <div className="flex flex-col justify-between h-full">
       <div>
@@ -28,7 +38,7 @@ export default function Sidebar({
         </nav>
       </div>
       <div className="space-y-6 mt-8">
-        <SidebarButton icon={<FiLogOut />} label="Salir" onClick={onLogout} />
+        <SidebarButton icon={<FiLogOut />} label="Salir" onClick={handleLogout} />
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center">
             <BsPersonFill className="w-6 h-6" />
@@ -66,3 +76,4 @@ function SidebarButton({ icon, label, onClick }: SidebarButtonProps) {
     </button>
   );
 }
+

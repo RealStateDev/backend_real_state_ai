@@ -95,7 +95,7 @@ export default function HomePage() {
     setSidebarOpen(false);
     setShowMainContent(true);
   };
-  const handleLogout = () => router.push("/loginPage");
+  
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
@@ -192,7 +192,6 @@ export default function HomePage() {
           onNewChat={startNewSession}
           onSavedClick={handleGoToSaved}
           onOptionClick={handleSidebarOptionClick}
-          onLogout={handleLogout}
           userName={userName}
           onHomeClick={handleGoHome}
           handleHistoryChats={handleHistoryChats}
@@ -208,7 +207,6 @@ export default function HomePage() {
               onNewChat={startNewSession}
               onSavedClick={handleGoToSaved}
               onOptionClick={handleSidebarOptionClick}
-              onLogout={handleLogout}
               userName={userName}
               onHomeClick={handleGoHome}
               handleHistoryChats={handleHistoryChats}

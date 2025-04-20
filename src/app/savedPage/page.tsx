@@ -88,7 +88,6 @@ export default function SavedPage() {
           onNewChat={startNewSession}
           onSavedClick={handleGoToSaved}
           onOptionClick={handleSidebarOptionClick}
-          onLogout={handleLogout}
           userName={userName}
           onHomeClick={handleGoHome}
           handleHistoryChats={handleHistoryChats}
@@ -104,7 +103,6 @@ export default function SavedPage() {
               onNewChat={startNewSession}
               onSavedClick={handleGoToSaved}
               onOptionClick={handleSidebarOptionClick}
-              onLogout={handleLogout}
               userName={userName}
               onHomeClick={handleGoHome}
               handleHistoryChats={handleHistoryChats}
