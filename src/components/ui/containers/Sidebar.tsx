@@ -7,7 +7,7 @@ import { BsPersonFill } from "react-icons/bs";
 import { SidebarProps } from "@/types/generalTypes";
 import logoutClientService from "@/services/logoutClientService";
 import { useRouter } from "next/navigation";
-
+import useSubscriptionHook from "@/hooks/useSubscriptionHook";
 
 export default function Sidebar({ 
   onNewChat, 
@@ -19,12 +19,14 @@ export default function Sidebar({
   userName 
 }: SidebarProps) {
 
-    const router = useRouter();
+  const router = useRouter();
 
   const handleLogout = async () =>{
     await logoutClientService();
     router.push("/loginPage"); 
   } 
+
+  const {subscription,subscriptionError,subscriptionLoading} = useSubscriptionHook();
 
   return (
     <div className="flex flex-col justify-between h-full">
@@ -46,6 +48,7 @@ export default function Sidebar({
           <div>
             <p className="text-sm font-medium text-gray-800">{userName || "Usuario"}</p>
             <p className="text-xs text-gray-500">Mi cuenta</p>
+            <p className="text-xs text-blue-600">{subscription ? subscription.tipo_suscripcion : 'Plan Free'}</p>
             <button 
               onClick={suscriptionView}
               className="text-xs text-gray-500 hover:underline"

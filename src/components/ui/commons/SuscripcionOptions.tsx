@@ -2,6 +2,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { useUser } from "@/contexts/userContext";
+import createSubscription from "@/services/createSubscription";
+import { useRouter } from "next/navigation";
 
 interface Plan {
   name: string;
@@ -14,13 +17,18 @@ interface Plan {
 
 export default function SuscripcionOptions() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const router = useRouter();
+  // Llamada al contexto de usuario
+  const { user } = useUser();
+  const userId = user?.id || null; // Puede ser string o null
 
   const plans: Plan[] = [
     {
       name: "Plan Free",
       monthlyPrice: 0,
       annualPrice: 0,
-      description: "Plan gratuito para comenzar a explorar nuestras funcionalidades.",
+      description:
+        "Plan gratuito para comenzar a explorar nuestras funcionalidades.",
       features: [
         "40 consultas por día",
         "Soporte limitado",
@@ -59,7 +67,11 @@ export default function SuscripcionOptions() {
     <div className="p-4">
       {/* Toggle de precios */}
       <div className="flex items-center justify-center mb-6">
-        <span className={`${!isAnnual ? "text-blue-600" : "text-gray-600"} font-semibold mx-2`}>
+        <span
+          className={`${
+            !isAnnual ? "text-blue-600" : "text-gray-600"
+          } font-semibold mx-2`}
+        >
           Mensual
         </span>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -69,13 +81,19 @@ export default function SuscripcionOptions() {
             onChange={() => setIsAnnual(!isAnnual)}
             className="sr-only peer"
           />
-          <div className="w-11 h-6 bg-gray-300 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 dark:bg-gray-700 
+          <div
+            className="w-11 h-6 bg-gray-300 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 dark:bg-gray-700 
                       peer-checked:after:translate-x-full peer-checked:after:border-white 
                       after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white 
                       after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all 
-                      dark:border-gray-600 peer-checked:bg-blue-600" />
+                      dark:border-gray-600 peer-checked:bg-blue-600"
+          />
         </label>
-        <span className={`${isAnnual ? "text-blue-600" : "text-gray-600"} font-semibold mx-2`}>
+        <span
+          className={`${
+            isAnnual ? "text-blue-600" : "text-gray-600"
+          } font-semibold mx-2`}
+        >
           Anual
         </span>
         {isAnnual && (
@@ -108,7 +126,24 @@ export default function SuscripcionOptions() {
                 </li>
               ))}
             </ul>
-            <button className="bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition font-medium">
+            <button
+              className="bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition font-medium"
+              onClick={async () => {
+                try {
+                  if (userId) {
+                    const subscription = await createSubscription({
+                      usuario_id: userId,
+                      tipo_suscripcion: plan.name,
+                      fecha_fin: "2026-03-23T20:31:17.686Z",
+                    });
+                    console.log("Subscription ", subscription);
+                    router.back();
+                  }
+                } catch (error) {
+                  console.error(error);
+                }
+              }}
+            >
               {plan.cta}
             </button>
           </div>

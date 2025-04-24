@@ -8,7 +8,6 @@ import { FiArrowLeft } from "react-icons/fi";
 
 export default function SuscriptionsPage() {
   const router = useRouter();
-
   return (
     <div className="h-screen w-screen bg-gray-50 font-poppins relative overflow-y-auto">
       {/* Botón para volver atrás */}

@@ -90,3 +90,11 @@ export interface Favorite {
   usuarios:Usertype;
   propiedades:PropertyListing;
 }
+
+export interface Subscripcion {
+  id?: number;
+  usuario_id: number;           
+  tipo_suscripcion: string;     
+  fecha_inicio?: string;         
+  fecha_fin: string;          
+}
