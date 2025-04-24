@@ -24,7 +24,7 @@ export async function loginuserService(req: Usertype) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 24, // un dia 
+      maxAge: 60 * 60 * 24,//ver 
       path: "/",
     });
 
