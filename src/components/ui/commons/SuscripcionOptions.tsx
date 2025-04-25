@@ -134,7 +134,9 @@ export default function SuscripcionOptions() {
                     const subscription = await createSubscription({
                       usuario_id: userId,
                       tipo_suscripcion: plan.name,
-                      fecha_fin: "2026-03-23T20:31:17.686Z",
+                      activo: true,
+                      monto: isAnnual ? plan.annualPrice * 12 : plan.monthlyPrice,
+                      tipo_facturacion: isAnnual ? "anual" : "mensual",
                     });
                     console.log("Subscription ", subscription);
                     router.back();

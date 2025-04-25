@@ -96,5 +96,8 @@ export interface Subscripcion {
   usuario_id: number;           
   tipo_suscripcion: string;     
   fecha_inicio?: string;         
-  fecha_fin: string;          
+  fecha_fin?: string;     
+  activo: boolean;
+  tipo_facturacion: "mensual" | "anual";
+  monto:number;     
 }

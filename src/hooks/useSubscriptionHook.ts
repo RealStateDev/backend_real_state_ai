@@ -26,7 +26,8 @@ export default function useSubscriptionHook()
                     }
                     else 
                     {
-                        setSubscription(subscription.subsList[0]);
+                        const activeSubscription = subscription.subsList.find((sub: Subscripcion) => sub.activo);
+                        setSubscription(activeSubscription);
                     }  
                 } catch (error) {
                     setSubscriptionError('Error en useSubscriptionHook');
