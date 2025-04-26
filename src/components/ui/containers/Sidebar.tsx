@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect} from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
 import { FiLogOut } from "react-icons/fi";
 import { BsPersonFill } from "react-icons/bs";
@@ -8,6 +8,8 @@ import { SidebarProps } from "@/types/generalTypes";
 import logoutClientService from "@/services/logoutClientService";
 import { useRouter } from "next/navigation";
 import useSubscriptionHook from "@/hooks/useSubscriptionHook";
+import { parseISO, isBefore } from "date-fns"
+import updateSubscriptionService from "@/services/updateSubscriptionService";
 
 export default function Sidebar({ 
   onNewChat, 
@@ -27,6 +29,30 @@ export default function Sidebar({
   } 
 
   const {subscription,subscriptionError,subscriptionLoading} = useSubscriptionHook();
+
+  useEffect(() => {
+    if (!subscription?.fecha_fin) return;           // si aún no hay data, salir
+  
+    try {
+      const fechaFin = parseISO(subscription.fecha_fin);
+  
+      // ¿Ya venció? (fechaFin está antes de AHORA)
+      const yaVencio = isBefore(fechaFin, new Date());
+  
+      if (yaVencio) {
+        (async () => {
+          if (subscription.id) {
+            const res = await updateSubscriptionService(subscription.id, {
+              activo: false,
+            });
+            console.log("Venció la suscripción:", res);
+          }
+        })();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, [subscription]);
 
   return (
     <div className="flex flex-col justify-between h-full">
@@ -48,7 +74,7 @@ export default function Sidebar({
           <div>
             <p className="text-sm font-medium text-gray-800">{userName || "Usuario"}</p>
             <p className="text-xs text-gray-500">Mi cuenta</p>
-            <p className="text-xs text-blue-600">{subscription ? subscription.tipo_suscripcion : 'Plan Free'}</p>
+            <p className="text-xs text-blue-600">{subscription?.tipo_suscripcion ? subscription?.tipo_suscripcion : 'Plan Free'}</p>
             <button 
               onClick={suscriptionView}
               className="text-xs text-gray-500 hover:underline"

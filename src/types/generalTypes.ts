@@ -93,11 +93,11 @@ export interface Favorite {
 
 export interface Subscripcion {
   id?: number;
-  usuario_id: number;           
-  tipo_suscripcion: string;     
+  usuario_id?: number;           
+  tipo_suscripcion?: string;     
   fecha_inicio?: string;         
   fecha_fin?: string;     
-  activo: boolean;
-  tipo_facturacion: "mensual" | "anual";
-  monto:number;     
+  activo?: boolean;
+  tipo_facturacion?: "mensual" | "anual";
+  monto?:number;     
 }

@@ -5,6 +5,8 @@ import React, { useState } from "react";
 import { useUser } from "@/contexts/userContext";
 import createSubscription from "@/services/createSubscription";
 import { useRouter } from "next/navigation";
+import useSubscriptionHook from "@/hooks/useSubscriptionHook";
+import updateSubscriptionService from "@/services/updateSubscriptionService";
 
 interface Plan {
   name: string;
@@ -21,6 +23,7 @@ export default function SuscripcionOptions() {
   // Llamada al contexto de usuario
   const { user } = useUser();
   const userId = user?.id || null; // Puede ser string o null
+  const {subscription, subscriptionError, subscriptionLoading } = useSubscriptionHook();
 
   const plans: Plan[] = [
     {
@@ -130,15 +133,34 @@ export default function SuscripcionOptions() {
               className="bg-blue-600 text-white rounded py-2 hover:bg-blue-700 transition font-medium"
               onClick={async () => {
                 try {
-                  if (userId) {
-                    const subscription = await createSubscription({
+                  if (userId && subscription?.id) {
+
+                    const updateSubscription = await updateSubscriptionService(subscription?.id, {
+                      activo: false,
+                    });
+
+                    console.log("desactivado de subscripcion: " + updateSubscription);
+
+                    const subscriptionCreate = await createSubscription({
                       usuario_id: userId,
                       tipo_suscripcion: plan.name,
                       activo: true,
                       monto: isAnnual ? plan.annualPrice * 12 : plan.monthlyPrice,
                       tipo_facturacion: isAnnual ? "anual" : "mensual",
                     });
-                    console.log("Subscription ", subscription);
+                    console.log("Subscription ", subscriptionCreate);
+
+                    router.back();
+                  }else if(userId && !subscription?.id){
+                    const subscriptionCreate = await createSubscription({
+                      usuario_id: userId,
+                      tipo_suscripcion: plan.name,
+                      activo: true,
+                      monto: isAnnual ? plan.annualPrice * 12 : plan.monthlyPrice,
+                      tipo_facturacion: isAnnual ? "anual" : "mensual",
+                    });
+                    console.log("Subscription ", subscriptionCreate);
+
                     router.back();
                   }
                 } catch (error) {
