@@ -1,10 +1,15 @@
 import React, {useState, useEffect} from "react";
 import { Favorite } from "@/types/generalTypes";
 import getFavoritePropertyByUser from "@/services/getFavoritePropertyByUser";
+interface useFavHook {
+    code: number;
+    data: Favorite[];
+    favoritoCount:number;
+}
 
 export default function useFavoriteHook(userId:number) 
 {
-    const [favorites, setFavorites] = useState<Favorite[] | null>(null);
+    const [favorites, setFavorites] = useState< useFavHook | null>(null);
     const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
     const [favoriteError, setFavoriteError] = useState<string|null>(null);
 
@@ -13,7 +18,7 @@ export default function useFavoriteHook(userId:number)
             setFavoriteLoading(true);
             setFavoriteError(null);
             try {
-                const userFavorites:Favorite[] = await getFavoritePropertyByUser(userId);
+                const userFavorites:useFavHook= await getFavoritePropertyByUser(userId);
                 console.log('allFavorites ', userFavorites);
                 setFavorites(userFavorites);
 

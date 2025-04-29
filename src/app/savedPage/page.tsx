@@ -1,88 +1,46 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
-import { FiMenu, FiLogOut } from "react-icons/fi";
-import { BsPersonFill } from "react-icons/bs";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { FiMenu, FiChevronDown, FiChevronUp, FiExternalLink } from "react-icons/fi";
+import { TbLayoutBottombarExpandFilled, TbLayoutNavbarExpandFilled } from "react-icons/tb";
 import Sidebar from "@/components/ui/containers/Sidebar";
+import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/userContext";
-
-// Repite la misma interfaz
-interface ChatSession {
-  id: string;
-  title: string;
-  date: string;
-  messages: any[];
-}
+import useFavoriteHook from "@/hooks/useFavoriteById";
 
 export default function SavedPage() {
   const { user } = useUser();
-  const userName = user?.nombre || null; // Puede ser string o null
-  const [savedBotMessages, setSavedBotMessages] = useState<{ title: string; link: string }[]>([]);
+  const userName = user?.nombre || null;
+  const { favorites, favoriteLoading, favoriteError } = useFavoriteHook(user?.id ?? 0);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
-  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
-  const [showCards, setShowCards] = useState(true);
-
-
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [showMoreInfo, setShowMoreInfo] = useState<number | null>(null);
 
   const router = useRouter();
 
-
-  const startNewSession = () => {
-    const newSession: ChatSession = {
-      id: String(Date.now()),
-      title: "Chat " + new Date().toLocaleString(),
-      date: new Date().toISOString(),
-      messages: [],
-    };
-    setCurrentSession(newSession);
-    setShowCards(true);
-    router.push("/homePage")// luego de 
-  };
-
-  // Al montar, obtenemos las propiedades guardadas y el nombre de usuario
-  useEffect(() => {
-    const saved = localStorage.getItem("savedBotMessages");
-    if (saved) {
-      setSavedBotMessages(JSON.parse(saved));
-    }
-
-    /*const storedName = localStorage.getItem("userName");
-    if (storedName) {
-      setUserName(storedName);
-    }*/
-  }, []);
-
-  // Toggle para el sidebar en mobile
+  const startNewSession = () => router.push("/homePage");
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
   };
-
-  // Cerrar el sidebar en mobile al pulsar alguna opción
   const handleSidebarOptionClick = () => {
     setSidebarOpen(false);
     setShowMainContent(true);
   };
-
-  // Navegación
-  const handleLogout = () => router.push("/loginPage");
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
   const suscriptionsView = () => router.push("/suscriptionsPage");
 
+  if (!userName) return null;
 
-  if(!userName) {
-    return  null;
-  }
-
+  const noFavorites = !favorites?.data || favorites.data.length === 0;
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
-      {/* SIDEBAR DESKTOP */}
+      {/* Sidebar Desktop */}
       <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
         <Sidebar
           onNewChat={startNewSession}
@@ -95,7 +53,7 @@ export default function SavedPage() {
         />
       </aside>
 
-      {/* SIDEBAR (mobile) */}
+      {/* Sidebar Mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
@@ -109,17 +67,12 @@ export default function SavedPage() {
               suscriptionView={suscriptionsView}
             />
           </div>
-          {/* Clic fuera para cerrar */}
-          <div
-            className="flex-1 bg-white bg-opacity-25"
-            onClick={handleMenuToggle}
-          />
+          <div className="flex-1 bg-white/25" onClick={handleMenuToggle} />
         </div>
       )}
 
-      {/* CONTENIDO PRINCIPAL */}
+      {/* Contenido Principal */}
       <div className="flex-1 relative">
-        {/* Botón hamburguesa en mobile */}
         <button
           onClick={handleMenuToggle}
           className="md:hidden absolute top-4 left-4 z-50"
@@ -127,32 +80,95 @@ export default function SavedPage() {
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
-        {showMainContent && (
-          <main className="flex flex-col px-6 py-10 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Propiedades guardadas</h1>
-            {savedBotMessages.length === 0 ? (
-              <p className="text-gray-500">No tienes propiedades guardadas aún.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {savedBotMessages.map((item, index) => (
-                  <div key={index} className="bg-white border rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800">{item.title}</h3>
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 underline"
-                    >
-                      Ver propiedad
-                    </a>
+        <main className="px-6 py-10 max-w-5xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Propiedades guardadas</h1>
+
+          {favoriteLoading ? (
+            <p className="text-gray-500">Cargando propiedades...</p>
+          ) : favoriteError ? (
+            <p className="text-red-500">Error al cargar propiedades</p>
+          ) : noFavorites ? (
+            <p className="text-gray-500">No tienes propiedades guardadas aún.</p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {favorites!.data.map((fav) => (
+                <div
+                  key={fav.id}
+                  className="border rounded-lg shadow-sm bg-white overflow-hidden transition-all duration-300"
+                >
+                  {/* Botón título */}
+                  <button
+                    className="w-full text-left p-4 flex justify-between items-center hover:bg-gray-100 transition"
+                    onClick={() => setExpanded(expanded === fav.id ? null : fav.id)}
+                  >
+                    <span className="font-semibold text-lg">{fav.propiedades.titulo}</span>
+                    {expanded === fav.id ? (
+                      <FiChevronUp className="text-gray-500" />
+                    ) : (
+                      <FiChevronDown className="text-gray-500" />
+                    )}
+                  </button>
+
+                  {/* Contenido expandido */}
+                  <div
+                    className={`transition-all overflow-hidden ${
+                      expanded === fav.id ? "max-h-[800px] p-4" : "max-h-0 p-0"
+                    }`}
+                  >
+                    {expanded === fav.id && (
+                      <div className="text-sm text-gray-700 space-y-2">
+                        <p><strong>💵 Precio:</strong> {fav.propiedades.precio} {fav.propiedades.currency || ''}</p>
+                        <p><strong>📍 Zona:</strong> {fav.propiedades.zona}</p>
+                        <p><strong>🛏 Dormitorios:</strong> {fav.propiedades.dormitorios}</p>
+                        <p><strong>🛁 Baños:</strong> {fav.propiedades.banos}</p>
+                        <p><strong>🏡 Tipo:</strong> {fav.propiedades.tipo_propiedad}</p>
+
+                        <a
+                          href={fav.propiedades.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-600 hover:underline mt-2"
+                        >
+                          Ver publicación <FiExternalLink />
+                        </a>
+
+                        {/* Botón mostrar más */}
+                        <button
+                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-4"
+                          onClick={() => setShowMoreInfo(showMoreInfo === fav.id ? null : fav.id)}
+                        >
+                          {showMoreInfo === fav.id ? (
+                            <>
+                              Ocultar detalles
+                              <TbLayoutBottombarExpandFilled className="w-5 h-5" />
+                            </>
+                          ) : (
+                            <>
+                              Más información
+                              <TbLayoutNavbarExpandFilled className="w-5 h-5" />
+                            </>
+                          )}
+                        </button>
+
+                        {/* Más detalles */}
+                        {showMoreInfo === fav.id && (
+                          <div className="mt-4 space-y-1">
+                            <p><strong>📐 M2 edificados:</strong> {fav.propiedades.m2_edificados || "N/D"} m²</p>
+                            <p><strong>🌳 M2 terreno:</strong> {fav.propiedades.m2_terreno || "N/D"} m²</p>
+                            <p><strong>🏠 Plantas:</strong> {fav.propiedades.plantas || "N/D"}</p>
+                            <p><strong>📝 Descripción:</strong> {fav.propiedades.descripcion || "Sin descripción"}</p>
+                            <p><strong>🎯 Comodidades:</strong> {fav.propiedades.comodidades || "No especificadas"}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </main>
-        )}
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
 }
-
