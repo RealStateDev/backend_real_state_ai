@@ -1,42 +1,74 @@
 "use client";
 
-import React, { useState } from "react";
-import { FiMenu, FiChevronDown, FiChevronUp, FiExternalLink } from "react-icons/fi";
-import { TbLayoutBottombarExpandFilled, TbLayoutNavbarExpandFilled } from "react-icons/tb";
+import React, { useState, useEffect } from "react";
+import {
+  FiMenu,
+  FiChevronDown,
+  FiChevronUp,
+  FiExternalLink,
+  FiTrash2,
+} from "react-icons/fi";
+import {
+  TbLayoutBottombarExpandFilled,
+  TbLayoutNavbarExpandFilled,
+} from "react-icons/tb";
 import Sidebar from "@/components/ui/containers/Sidebar";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/userContext";
 import useFavoriteHook from "@/hooks/useFavoriteById";
+import deleteFavorite from "@/services/deleteFavorite";
 
 export default function SavedPage() {
   const { user } = useUser();
   const userName = user?.nombre || null;
-  const { favorites, favoriteLoading, favoriteError } = useFavoriteHook(user?.id ?? 0);
+  const { favorites, favoriteLoading, favoriteError } = useFavoriteHook(
+    user?.id ?? 0
+  );
+
+  // Estado local para la lista de favoritos
+  // CAMBIAR EL TIPO
+  const [favList, setFavList] = useState<any[]>([]);
+
+  // Sincronizar favList cuando cambie favorites.data
+  useEffect(() => {
+    if (favorites?.data) {
+      setFavList(favorites.data);
+    }
+  }, [favorites?.data]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showMainContent, setShowMainContent] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [showMoreInfo, setShowMoreInfo] = useState<number | null>(null);
 
   const router = useRouter();
-
   const startNewSession = () => router.push("/homePage");
-  const handleMenuToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-    setShowMainContent(sidebarOpen);
-  };
-  const handleSidebarOptionClick = () => {
-    setSidebarOpen(false);
-    setShowMainContent(true);
-  };
+  const handleMenuToggle = () => setSidebarOpen((o) => !o);
+  const handleOptionClick = () => setSidebarOpen(false);
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
   const suscriptionsView = () => router.push("/suscriptionsPage");
 
+  // Eliminar favorito con actualización optimista en la UI
+  const removeFavorite = async (id: number) => {
+    // Actualizo UI de inmediato
+    setFavList((prev) => prev.filter((f) => f.id !== id));
+
+    try {
+      const res = await deleteFavorite(id);
+      if (res.code !== 1) {
+        console.error("Error al borrar en servidor:", res);
+        // opcional: rollback o nuevo fetch
+      }
+    } catch (err) {
+      console.error("Error en petición de borrado:", err);
+      // opcional: rollback
+    }
+  };
+
   if (!userName) return null;
 
-  const noFavorites = !favorites?.data || favorites.data.length === 0;
+  const noFavorites = favList.length === 0;
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
@@ -45,7 +77,7 @@ export default function SavedPage() {
         <Sidebar
           onNewChat={startNewSession}
           onSavedClick={handleGoToSaved}
-          onOptionClick={handleSidebarOptionClick}
+          onOptionClick={handleOptionClick}
           userName={userName}
           onHomeClick={handleGoHome}
           handleHistoryChats={handleHistoryChats}
@@ -60,7 +92,7 @@ export default function SavedPage() {
             <Sidebar
               onNewChat={startNewSession}
               onSavedClick={handleGoToSaved}
-              onOptionClick={handleSidebarOptionClick}
+              onOptionClick={handleOptionClick}
               userName={userName}
               onHomeClick={handleGoHome}
               handleHistoryChats={handleHistoryChats}
@@ -88,26 +120,42 @@ export default function SavedPage() {
           ) : favoriteError ? (
             <p className="text-red-500">Error al cargar propiedades</p>
           ) : noFavorites ? (
-            <p className="text-gray-500">No tienes propiedades guardadas aún.</p>
+            <p className="text-gray-500">
+              No tienes propiedades guardadas aún.
+            </p>
           ) : (
             <div className="flex flex-col gap-4">
-              {favorites!.data.map((fav) => (
+              {favList.map((fav) => (
                 <div
                   key={fav.id}
-                  className="border rounded-lg shadow-sm bg-white overflow-hidden transition-all duration-300"
+                  className="border rounded-lg shadow-sm bg-white overflow-hidden transition-all duration-300 relative"
                 >
-                  {/* Botón título */}
+                  {/* Header del card */}
                   <button
-                    className="w-full text-left p-4 flex justify-between items-center hover:bg-gray-100 transition"
-                    onClick={() => setExpanded(expanded === fav.id ? null : fav.id)}
+                    className="w-full text-left p-4 flex justify-between items-center hover:bg-gray-100 transition h-14"
+                    onClick={() =>
+                      setExpanded(expanded === fav.id ? null : fav.id)
+                    }
                   >
-                    <span className="font-semibold text-lg">{fav.propiedades.titulo}</span>
+                    <span className="font-semibold text-lg">
+                      {fav.propiedades.titulo}
+                    </span>
                     {expanded === fav.id ? (
                       <FiChevronUp className="text-gray-500" />
                     ) : (
                       <FiChevronDown className="text-gray-500" />
                     )}
                   </button>
+
+                  {/* Icono basurero posicionado */}
+                  {expanded === fav.id && (
+                    <button
+                      className="absolute right-4 top-14 p-0"
+                      onClick={() => removeFavorite(fav.id)}
+                    >
+                      <FiTrash2 className="text-gray-500 hover:text-red-500" />
+                    </button>
+                  )}
 
                   {/* Contenido expandido */}
                   <div
@@ -117,11 +165,24 @@ export default function SavedPage() {
                   >
                     {expanded === fav.id && (
                       <div className="text-sm text-gray-700 space-y-2">
-                        <p><strong>💵 Precio:</strong> {fav.propiedades.precio} {fav.propiedades.currency || ''}</p>
-                        <p><strong>📍 Zona:</strong> {fav.propiedades.zona}</p>
-                        <p><strong>🛏 Dormitorios:</strong> {fav.propiedades.dormitorios}</p>
-                        <p><strong>🛁 Baños:</strong> {fav.propiedades.banos}</p>
-                        <p><strong>🏡 Tipo:</strong> {fav.propiedades.tipo_propiedad}</p>
+                        <p>
+                          <strong>💵 Precio:</strong> {fav.propiedades.precio}{" "}
+                          {fav.propiedades.currency || ""}
+                        </p>
+                        <p>
+                          <strong>📍 Zona:</strong> {fav.propiedades.zona}
+                        </p>
+                        <p>
+                          <strong>🛏 Dormitorios:</strong>{" "}
+                          {fav.propiedades.dormitorios}
+                        </p>
+                        <p>
+                          <strong>🛁 Baños:</strong> {fav.propiedades.banos}
+                        </p>
+                        <p>
+                          <strong>🏡 Tipo:</strong>{" "}
+                          {fav.propiedades.tipo_propiedad}
+                        </p>
 
                         <a
                           href={fav.propiedades.url}
@@ -135,7 +196,11 @@ export default function SavedPage() {
                         {/* Botón mostrar más */}
                         <button
                           className="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-4"
-                          onClick={() => setShowMoreInfo(showMoreInfo === fav.id ? null : fav.id)}
+                          onClick={() =>
+                            setShowMoreInfo(
+                              showMoreInfo === fav.id ? null : fav.id
+                            )
+                          }
                         >
                           {showMoreInfo === fav.id ? (
                             <>
@@ -150,14 +215,29 @@ export default function SavedPage() {
                           )}
                         </button>
 
-                        {/* Más detalles */}
                         {showMoreInfo === fav.id && (
                           <div className="mt-4 space-y-1">
-                            <p><strong>📐 M2 edificados:</strong> {fav.propiedades.m2_edificados || "N/D"} m²</p>
-                            <p><strong>🌳 M2 terreno:</strong> {fav.propiedades.m2_terreno || "N/D"} m²</p>
-                            <p><strong>🏠 Plantas:</strong> {fav.propiedades.plantas || "N/D"}</p>
-                            <p><strong>📝 Descripción:</strong> {fav.propiedades.descripcion || "Sin descripción"}</p>
-                            <p><strong>🎯 Comodidades:</strong> {fav.propiedades.comodidades || "No especificadas"}</p>
+                            <p>
+                              <strong>📐 M2 edificados:</strong>{" "}
+                              {fav.propiedades.m2_edificados || "N/D"} m²
+                            </p>
+                            <p>
+                              <strong>🌳 M2 terreno:</strong>{" "}
+                              {fav.propiedades.m2_terreno || "N/D"} m²
+                            </p>
+                            <p>
+                              <strong>🏠 Plantas:</strong>{" "}
+                              {fav.propiedades.plantas || "N/D"}
+                            </p>
+                            <p>
+                              <strong>📝 Descripción:</strong>{" "}
+                              {fav.propiedades.descripcion || "Sin descripción"}
+                            </p>
+                            <p>
+                              <strong>🎯 Comodidades:</strong>{" "}
+                              {fav.propiedades.comodidades ||
+                                "No especificadas"}
+                            </p>
                           </div>
                         )}
                       </div>
