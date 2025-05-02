@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/userContext";
 import useFavoriteHook from "@/hooks/useFavoriteById";
 import deleteFavorite from "@/services/deleteFavorite";
+// Opcional: si quieres usar Next Image en lugar de <img>
+// import Image from "next/image";
 
 export default function SavedPage() {
   const { user } = useUser();
@@ -25,11 +27,7 @@ export default function SavedPage() {
     user?.id ?? 0
   );
 
-  // Estado local para la lista de favoritos
-  // CAMBIAR EL TIPO
   const [favList, setFavList] = useState<any[]>([]);
-
-  // Sincronizar favList cuando cambie favorites.data
   useEffect(() => {
     if (favorites?.data) {
       setFavList(favorites.data);
@@ -43,31 +41,24 @@ export default function SavedPage() {
   const router = useRouter();
   const startNewSession = () => router.push("/homePage");
   const handleMenuToggle = () => setSidebarOpen((o) => !o);
-  const handleOptionClick = () => setSidebarOpen(false);
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
   const suscriptionsView = () => router.push("/suscriptionsPage");
 
-  // Eliminar favorito con actualización optimista en la UI
   const removeFavorite = async (id: number) => {
-    // Actualizo UI de inmediato
     setFavList((prev) => prev.filter((f) => f.id !== id));
-
     try {
       const res = await deleteFavorite(id);
       if (res.code !== 1) {
         console.error("Error al borrar en servidor:", res);
-        // opcional: rollback o nuevo fetch
       }
     } catch (err) {
       console.error("Error en petición de borrado:", err);
-      // opcional: rollback
     }
   };
 
   if (!userName) return null;
-
   const noFavorites = favList.length === 0;
 
   return (
@@ -77,7 +68,7 @@ export default function SavedPage() {
         <Sidebar
           onNewChat={startNewSession}
           onSavedClick={handleGoToSaved}
-          onOptionClick={handleOptionClick}
+          onOptionClick={handleMenuToggle}
           userName={userName}
           onHomeClick={handleGoHome}
           handleHistoryChats={handleHistoryChats}
@@ -92,7 +83,7 @@ export default function SavedPage() {
             <Sidebar
               onNewChat={startNewSession}
               onSavedClick={handleGoToSaved}
-              onOptionClick={handleOptionClick}
+              onOptionClick={handleMenuToggle}
               userName={userName}
               onHomeClick={handleGoHome}
               handleHistoryChats={handleHistoryChats}
@@ -130,7 +121,7 @@ export default function SavedPage() {
                   key={fav.id}
                   className="border rounded-lg shadow-sm bg-white overflow-hidden transition-all duration-300 relative"
                 >
-                  {/* Header del card */}
+                  {/* Header */}
                   <button
                     className="w-full text-left p-4 flex justify-between items-center hover:bg-gray-100 transition h-14"
                     onClick={() =>
@@ -147,7 +138,7 @@ export default function SavedPage() {
                     )}
                   </button>
 
-                  {/* Icono basurero posicionado */}
+                  {/* Basurero */}
                   {expanded === fav.id && (
                     <button
                       className="absolute right-4 top-14 p-0"
@@ -157,89 +148,99 @@ export default function SavedPage() {
                     </button>
                   )}
 
-                  {/* Contenido expandido */}
+                  {/* Contenido Expandido */}
                   <div
                     className={`transition-all overflow-hidden ${
                       expanded === fav.id ? "max-h-[800px] p-4" : "max-h-0 p-0"
                     }`}
                   >
                     {expanded === fav.id && (
-                      <div className="text-sm text-gray-700 space-y-2">
-                        <p>
-                          <strong>💵 Precio:</strong> {fav.propiedades.precio}{" "}
-                          {fav.propiedades.currency || ""}
-                        </p>
-                        <p>
-                          <strong>📍 Zona:</strong> {fav.propiedades.zona}
-                        </p>
-                        <p>
-                          <strong>🛏 Dormitorios:</strong>{" "}
-                          {fav.propiedades.dormitorios}
-                        </p>
-                        <p>
-                          <strong>🛁 Baños:</strong> {fav.propiedades.banos}
-                        </p>
-                        <p>
-                          <strong>🏡 Tipo:</strong>{" "}
-                          {fav.propiedades.tipo_propiedad}
-                        </p>
-
-                        <a
-                          href={fav.propiedades.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-blue-600 hover:underline mt-2"
-                        >
-                          Ver publicación <FiExternalLink />
-                        </a>
-
-                        {/* Botón mostrar más */}
-                        <button
-                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-4"
-                          onClick={() =>
-                            setShowMoreInfo(
-                              showMoreInfo === fav.id ? null : fav.id
-                            )
-                          }
-                        >
-                          {showMoreInfo === fav.id ? (
-                            <>
-                              Ocultar detalles
-                              <TbLayoutBottombarExpandFilled className="w-5 h-5" />
-                            </>
-                          ) : (
-                            <>
-                              Más información
-                              <TbLayoutNavbarExpandFilled className="w-5 h-5" />
-                            </>
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {/* Texto */}
+                        <div className="flex-1 text-sm text-gray-700 space-y-2">
+                          <p>
+                            <strong>💵 Precio:</strong> {fav.propiedades.precio}{" "}
+                            {fav.propiedades.currency}
+                          </p>
+                          <p>
+                            <strong>📍 Zona:</strong> {fav.propiedades.zona}
+                          </p>
+                          <p>
+                            <strong>🛏 Dormitorios:</strong>{" "}
+                            {fav.propiedades.dormitorios}
+                          </p>
+                          <p>
+                            <strong>🛁 Baños:</strong> {fav.propiedades.banos}
+                          </p>
+                          <p>
+                            <strong>🏡 Tipo:</strong>{" "}
+                            {fav.propiedades.tipo_propiedad}
+                          </p>
+                          <a
+                            href={fav.propiedades.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:underline mt-2"
+                          >
+                            Ver publicación <FiExternalLink />
+                          </a>
+                          {/* Más campos si los necesitas */}
+                          <button
+                            className="flex items-center gap-2 text-sm text-blue-600 hover:underline mt-4"
+                            onClick={() =>
+                              setShowMoreInfo(
+                                showMoreInfo === fav.id ? null : fav.id
+                              )
+                            }
+                          >
+                            {showMoreInfo === fav.id ? (
+                              <>
+                                Ocultar detalles
+                                <TbLayoutBottombarExpandFilled className="w-5 h-5" />
+                              </>
+                            ) : (
+                              <>
+                                Más información
+                                <TbLayoutNavbarExpandFilled className="w-5 h-5" />
+                              </>
+                            )}
+                          </button>
+                          {showMoreInfo === fav.id && (
+                            <div className="mt-4 space-y-1">
+                              <p>
+                                <strong>📐 M2 edificados:</strong>{" "}
+                                {fav.propiedades.m2_edificados || "N/D"} m²
+                              </p>
+                              <p>
+                                <strong>🌳 M2 terreno:</strong>{" "}
+                                {fav.propiedades.m2_terreno || "N/D"} m²
+                              </p>
+                              <p>
+                                <strong>🏠 Plantas:</strong>{" "}
+                                {fav.propiedades.plantas || "N/D"}
+                              </p>
+                              <p>
+                                <strong>📝 Descripción:</strong>{" "}
+                                {fav.propiedades.descripcion ||
+                                  "Sin descripción"}
+                              </p>
+                              <p>
+                                <strong>🎯 Comodidades:</strong>{" "}
+                                {fav.propiedades.comodidades ||
+                                  "No especificadas"}
+                              </p>
+                            </div>
                           )}
-                        </button>
+                        </div>
 
-                        {showMoreInfo === fav.id && (
-                          <div className="mt-4 space-y-1">
-                            <p>
-                              <strong>📐 M2 edificados:</strong>{" "}
-                              {fav.propiedades.m2_edificados || "N/D"} m²
-                            </p>
-                            <p>
-                              <strong>🌳 M2 terreno:</strong>{" "}
-                              {fav.propiedades.m2_terreno || "N/D"} m²
-                            </p>
-                            <p>
-                              <strong>🏠 Plantas:</strong>{" "}
-                              {fav.propiedades.plantas || "N/D"}
-                            </p>
-                            <p>
-                              <strong>📝 Descripción:</strong>{" "}
-                              {fav.propiedades.descripcion || "Sin descripción"}
-                            </p>
-                            <p>
-                              <strong>🎯 Comodidades:</strong>{" "}
-                              {fav.propiedades.comodidades ||
-                                "No especificadas"}
-                            </p>
-                          </div>
-                        )}
+                        {/* Imagen */}
+                        <div className="md:w-1/3 h-48 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 ml-4 md:ml-8 mr-12">
+                          <img
+                            src="https://cdn2.infocasas.com.uy/repo/img/th.outside500x386.9f23d2edadd7c82718c0bda249727ad0b7670670.jpeg"
+                            alt="Imagen de prueba"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
