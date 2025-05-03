@@ -99,6 +99,7 @@ export default function HomePage() {
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
+  const handleAnalytics = () => router.push("/reportsPage");
   const suscriptionsView = () => router.push("/suscriptionsPage");
 
   const startNewSession = () => {
@@ -195,6 +196,7 @@ export default function HomePage() {
           userName={userName}
           onHomeClick={handleGoHome}
           handleHistoryChats={handleHistoryChats}
+          handleAnalytics={handleAnalytics}
           suscriptionView={suscriptionsView}
         />
       </aside>
@@ -210,6 +212,7 @@ export default function HomePage() {
               userName={userName}
               onHomeClick={handleGoHome}
               handleHistoryChats={handleHistoryChats}
+              handleAnalytics={handleAnalytics}
               suscriptionView={suscriptionsView}
             />
           </div>

@@ -17,8 +17,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/userContext";
 import useFavoriteHook from "@/hooks/useFavoriteById";
 import deleteFavorite from "@/services/deleteFavorite";
-// Opcional: si quieres usar Next Image en lugar de <img>
-// import Image from "next/image";
+
 
 export default function SavedPage() {
   const { user } = useUser();
@@ -44,6 +43,7 @@ export default function SavedPage() {
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
+  const handleAnalytics = () => router.push("/reportsPage");
   const suscriptionsView = () => router.push("/suscriptionsPage");
 
   const removeFavorite = async (id: number) => {
@@ -72,6 +72,7 @@ export default function SavedPage() {
           userName={userName}
           onHomeClick={handleGoHome}
           handleHistoryChats={handleHistoryChats}
+          handleAnalytics={handleAnalytics}
           suscriptionView={suscriptionsView}
         />
       </aside>
@@ -87,6 +88,7 @@ export default function SavedPage() {
               userName={userName}
               onHomeClick={handleGoHome}
               handleHistoryChats={handleHistoryChats}
+              handleAnalytics={handleAnalytics}
               suscriptionView={suscriptionsView}
             />
           </div>

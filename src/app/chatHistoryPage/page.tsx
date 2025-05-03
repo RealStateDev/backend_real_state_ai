@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef  } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
@@ -71,6 +71,7 @@ export default function ChatHistoryPage() {
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
+  const handleAnalytics = () => router.push("/reportsPage");
   const suscriptionsView = () => router.push("/suscriptionsPage");
 
   // Reanudar la sesión => push a home con ?sessionId
@@ -92,6 +93,7 @@ export default function ChatHistoryPage() {
           userName={userName}
           onHomeClick={handleGoHome}
           handleHistoryChats={handleHistoryChats}
+          handleAnalytics={handleAnalytics}
           suscriptionView={suscriptionsView}
         />
       </aside>
@@ -107,6 +109,7 @@ export default function ChatHistoryPage() {
               userName={userName}
               onHomeClick={handleGoHome}
               handleHistoryChats={handleHistoryChats}
+              handleAnalytics={handleAnalytics}
               suscriptionView={suscriptionsView}
             />
           </div>
@@ -125,8 +128,8 @@ export default function ChatHistoryPage() {
         </button>
 
         {showMainContent && (
-          
-          <main ref={scrollRef} className="px-6 py-10 max-w-3xl mx-auto overflow-y-auto" style={{ maxHeight: "80vh" }}>            <h1 className="text-3xl font-bold mb-6">Historial de Chats</h1>
+
+          <main ref={scrollRef} className="px-6 py-10 max-w-3xl mx-auto overflow-y-auto" style={{ maxHeight: "80vh" }}>           <h1 className="text-3xl font-bold mb-8">Historial de chats</h1>
             {sessions.length === 0 ? (
               <p className="text-gray-500">No hay chats guardados.</p>
             ) : (

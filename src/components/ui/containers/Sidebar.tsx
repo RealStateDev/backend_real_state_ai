@@ -2,6 +2,7 @@
 
 import React, { useEffect} from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
+import { IoAnalyticsSharp } from "react-icons/io5";
 import { FiLogOut } from "react-icons/fi";
 import { BsPersonFill } from "react-icons/bs";
 import { SidebarProps } from "@/types/generalTypes";
@@ -16,6 +17,7 @@ export default function Sidebar({
   onSavedClick, 
   onOptionClick, 
   handleHistoryChats, 
+  handleAnalytics,
   onHomeClick, 
   suscriptionView,
   userName 
@@ -63,6 +65,7 @@ export default function Sidebar({
           <SidebarButton icon={<CiFolderOn />} label="Propiedades guardadas" onClick={onSavedClick} />
           <SidebarButton icon={<CiSearch />} label="Buscar" onClick={onOptionClick} />
           <SidebarButton icon={<CiChat1 />} label="Historial de Chats" onClick={handleHistoryChats} />
+          <SidebarButton icon={<IoAnalyticsSharp  />} label="Analítica" onClick={handleAnalytics} />
         </nav>
       </div>
       <div className="space-y-6 mt-8">

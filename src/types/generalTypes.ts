@@ -39,6 +39,7 @@ export  interface SidebarProps {
   onSavedClick: () => void;
   onOptionClick: () => void;
   handleHistoryChats: () => void;
+  handleAnalytics: () => void;
   onHomeClick: () => void;
   suscriptionView: () => void;
   userName: string;
