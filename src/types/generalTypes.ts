@@ -81,6 +81,7 @@ export interface PropertyListing {
   fecha_modificacion: string;  
   currency: string;
   ciudad?: string;
+  image_url?: string;
 }
 
 export interface Favorite {

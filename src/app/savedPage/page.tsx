@@ -238,7 +238,7 @@ export default function SavedPage() {
                         {/* Imagen */}
                         <div className="md:w-1/3 h-48 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 ml-4 md:ml-8 mr-12">
                           <img
-                            src="https://cdn2.infocasas.com.uy/repo/img/th.outside500x386.9f23d2edadd7c82718c0bda249727ad0b7670670.jpeg"
+                            src={fav.propiedades.image_url}
                             alt="Imagen de prueba"
                             className="w-full h-full object-cover"
                           />
