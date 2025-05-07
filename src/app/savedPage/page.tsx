@@ -178,6 +178,18 @@ export default function SavedPage() {
                             <strong>🏡 Tipo:</strong>{" "}
                             {fav.propiedades.tipo_propiedad}
                           </p>
+                          <p>
+                            <strong>🏷️ Tipo de Operación:</strong>{" "}
+                            Alquiler
+                          </p>
+                          <a
+                            href={`/mapPage?lat=${fav.propiedades.latitud}&lng=${fav.propiedades.longitud}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:underline mt-2"
+                          >
+                            Ver mapa <FiExternalLink />
+                          </a>
                           <a
                             href={fav.propiedades.url}
                             target="_blank"
@@ -239,7 +251,7 @@ export default function SavedPage() {
                         <div className="md:w-1/3 h-48 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 ml-4 md:ml-8 mr-12">
                           <img
                             src={fav.propiedades.image_url}
-                            alt="Imagen de prueba"
+                            alt="Property Image"
                             className="w-full h-full object-cover"
                           />
                         </div>
