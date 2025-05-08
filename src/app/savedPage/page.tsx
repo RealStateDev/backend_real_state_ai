@@ -251,11 +251,7 @@ export default function SavedPage() {
                         <div className="md:w-1/3 h-48 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 ml-4 md:ml-8 mr-12">
                           <img
                             src={fav.propiedades.image_url}
-<<<<<<< Updated upstream
                             alt="Property Image"
-=======
-                            alt="property image"
->>>>>>> Stashed changes
                             className="w-full h-full object-cover"
                           />
                         </div>

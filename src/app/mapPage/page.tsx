@@ -1,42 +1,16 @@
-// components/Mapa.tsx
-'use client';
-import "../globals.css";
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useSearchParams } from 'next/navigation';
+'use client'; // O asegúrate de usar esto en un Client Component
 
-// Fix para que aparezca el ícono del marcador
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
+import dynamic from 'next/dynamic';
+
+const Mapa = dynamic(() => import('@/components/ui/commons/Mapa'), {
+  ssr: false, // Esto es lo importante
 });
 
-interface MapaProps {
-  lat: number;
-  lng: number;
-}
-
-export default function Mapa() {
-    const searchParams = useSearchParams();
-    const lat = parseFloat(searchParams.get('lat') || "-25.326859");
-    const lng = parseFloat(searchParams.get('lng') || "-57.548132");
+export default function MapPage() {
   return (
-    <MapContainer
-      center={[lat, lng]}
-      zoom={13}
-      scrollWheelZoom={false}
-      style={{ height: '400px', width: '100%' }}
-    >
-      <TileLayer
-        attribution='&copy; OpenStreetMap'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={[lat, lng]}>
-        <Popup>Ubicación seleccionada</Popup>
-      </Marker>
-    </MapContainer>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Ver en mapa</h1>
+      <Mapa />
+    </div>
   );
 }
