@@ -55,6 +55,11 @@ export default function ReportsPage() {
     datasets: [{ data: [10, 20, 15, 30, 25], backgroundColor: ['#155dfc', '#2563eb', '#1e40af', '#1d4ed8', '#2563eb'] }]
   };
 
+  const ageData = {
+    labels: ['<25', '25-35', '35-50', '>50'],
+    datasets: [{ data: [15, 30, 20, 10], backgroundColor: ['#155dfc', '#2563eb', '#1e40af', '#1d4ed8'] }]
+  };
+
   // Opciones Pie
   const pieOptions: ChartOptions<'pie'> = {
     responsive: true,
@@ -92,7 +97,7 @@ export default function ReportsPage() {
   return (
     <div className="h-screen w-screen flex overflow-hidden">
       {/* Sidebar desktop */}
-      <aside className="hidden md:flex md:w-64 bg-white border-r border-gray-200 p-6 flex-col justify-between">
+      <aside className="hidden md:flex md:w-64 bg-white p-6 flex-col justify-between">
         <Sidebar
           userName={userName}
           onNewChat={handleGoToSaved}
@@ -108,7 +113,7 @@ export default function ReportsPage() {
       {/* Sidebar mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
-          <div className="w-64 bg-white p-6 border-r border-gray-200">
+          <div className="w-64 bg-white p-6">
             <Sidebar
               userName={userName}
               onNewChat={handleGoToSaved}
@@ -132,7 +137,7 @@ export default function ReportsPage() {
 
         <main className="h-full bg-gray-50 font-poppins flex flex-col">
           <div className="p-8">
-            <h1 className="text-3xl font-bold text-black">Reportes de Búsquedas</h1>
+            <h1 className="text-3xl font-bold text-black">Reportes de Búsqueda</h1>
           </div>
           <div className="flex-1 overflow-y-auto p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -146,10 +151,15 @@ export default function ReportsPage() {
                 <h2 className="text-xl font-semibold">Barrios más buscados</h2>
                 <div className="flex-1"><Bar data={neighborhoodData} options={barOptions} /></div>
               </div>
-              {/* Barras span */}
-              <div className="bg-white p-6 rounded shadow md:col-span-2 h-64 flex flex-col justify-between">
+              {/* ¿Qué buscan? */}
+              <div className="bg-white p-6 rounded shadow h-64 flex flex-col justify-between">
                 <h2 className="text-xl font-semibold">¿Qué buscan para alquilar o comprar?</h2>
                 <div className="flex-1"><Bar data={searchCriteriaData} options={barOptions} /></div>
+              </div>
+              {/* Búsquedas por edad */}
+              <div className="bg-white p-6 rounded shadow h-64 flex flex-col justify-between">
+                <h2 className="text-xl font-semibold">Búsquedas por edad</h2>
+                <div className="flex-1"><Bar data={ageData} options={barOptions} /></div>
               </div>
             </div>
           </div>
