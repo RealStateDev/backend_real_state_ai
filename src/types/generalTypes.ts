@@ -51,7 +51,8 @@ export interface Usertype {
   nombre?: string;
   email: string;
   password: string;
-  birthdate?: string;
+  fecha_nacimiento?: string;
+  age?: number;
 }
 
 export interface PropertyListing {

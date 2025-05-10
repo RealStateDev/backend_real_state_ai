@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Usertype } from "@/types/generalTypes";
+import calculateAge from "@/utils/calculateAge";
 
 interface UserContexProps {
   user: Usertype | null;
@@ -23,6 +24,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!res.ok) throw new Error("No autorizado");
 
       const data = await res.json();
+      const fechaNacimiento = data.fecha_nacimiento;
+      const edad = calculateAge(fechaNacimiento);
+      data.age = edad;
       setUser(data);
     } catch (err) {
       setUser(null);

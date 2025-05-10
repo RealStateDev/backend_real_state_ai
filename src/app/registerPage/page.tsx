@@ -30,7 +30,7 @@ export default function RegisterPage() {
         nombre: data.nombre!,
         email: data.email,
         password: data.password,
-        birthdate: data.birthdate,
+        fecha_nacimiento: data.fecha_nacimiento,
       });
       setTimeout(() => {
         localStorage.setItem("userName", data.nombre!);
@@ -41,6 +41,7 @@ export default function RegisterPage() {
     }
   };
 
+  
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
@@ -89,10 +90,10 @@ export default function RegisterPage() {
             id="birthdate"
             labelText="Fecha de nacimiento"
             type="date"
-            {...register("birthdate", { required: "Este campo es obligatorio" })}
+            {...register("fecha_nacimiento", { required: "Este campo es obligatorio" })}
           />
-          {errors.birthdate && (
-            <p className="text-red-500 text-sm mt-1">{errors.birthdate.message}</p>
+          {errors.fecha_nacimiento && (
+            <p className="text-red-500 text-sm mt-1">{errors.fecha_nacimiento.message}</p>
           )}
 
           {/* Contraseña */}
