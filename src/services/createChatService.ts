@@ -25,7 +25,7 @@ export default async function createChatService(userId: number) {
     if (!resp.ok) {
       throw new Error(data || "Error interno del servidor");
     }
-    return data;
+    return data.data.id;
   } catch (error) {
     console.error(error)
   }

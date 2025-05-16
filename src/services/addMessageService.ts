@@ -1,5 +1,7 @@
 import { ChatMessage } from "@/types/generalTypes";
 
+type response = { code: number, message: string, data: any}
+
 export default async function addMessageService(chatId: number, contenido: string, tipo: "usuario" | "bot") {
     try {
         const res = await fetch(`http://localhost:5000/api/chats/${chatId}/mensajes`, {
@@ -12,7 +14,8 @@ export default async function addMessageService(chatId: number, contenido: strin
             const errJson = await res.json().catch(() => ({}));
             throw new Error(errJson.message || "Contenido y tipo son requeridos");
         }
-        return res.json();
+        const datos = await res.json()
+        return datos.data;
 
     } catch (error) {
         console.error(error)

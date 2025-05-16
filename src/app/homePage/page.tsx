@@ -132,12 +132,11 @@ export default function HomePage() {
     });
     setMessage("");
 
+
     try {
       if (!currentSession.apiChatId && user?.id) {
-        console.log("userID ", user?.id);
         const apiId = await createChatService(user?.id);
         setCurrentSession(prev => prev && ({ ...prev, apiChatId: apiId }));
-        console.log("apiID ", apiId);
       }
       if (currentSession.apiChatId) {
         const saved = await addMessageService(

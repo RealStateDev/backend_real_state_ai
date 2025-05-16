@@ -10,10 +10,10 @@ export default function ChatWindow({ messages, savedMessages, chatRef, onSaveBot
       {messages.map((msg, index) => {
         if (msg.type === "text" || !msg.type) {
           return (
-            <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} mb-2`}>
+            <div key={index} className={`flex ${msg.sender === "usuario" ? "justify-end" : "justify-start"} mb-2`}>
               <div
                 className={`px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap max-w-md ${
-                  msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
+                  msg.sender === "usuario" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
                 }`}
                 dangerouslySetInnerHTML={{ __html: msg.content }}
               />
