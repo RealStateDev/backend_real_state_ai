@@ -21,7 +21,8 @@ export interface ChatInputProps {
 
 
 export interface ChatMessage {
-  sender: "user" | "bot";
+  id?: number;
+  sender: "usuario" | "bot";
   type?: "text" | "recommendation";
   content: string;
   items?: { title: string; link: string }[];

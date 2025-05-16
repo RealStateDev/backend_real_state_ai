@@ -11,9 +11,12 @@ import "./style.css";
 import { useUser } from "@/contexts/userContext";
 import usePropertiesHook from "@/hooks/usePropertiesHook";
 import useFavoriteHook from "@/hooks/useFavoriteById";
+import createChatService from "@/services/createChatService";
+import addMessageService from "@/services/addMessageService";
 
 interface ChatSession {
   id: string;
+  apiChatId?: number;
   title: string;
   date: string;
   messages: ChatMessage[];
@@ -23,7 +26,7 @@ export default function HomePage() {
   // Llamada al contexto de usuario
   const { user } = useUser();
   const userName = user?.nombre || null; // Puede ser string o null
-  const {favorites,favoriteLoading,favoriteError} = useFavoriteHook(user?.id ?? 0);
+  const { favorites, favoriteLoading, favoriteError } = useFavoriteHook(user?.id ?? 0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
   const [message, setMessage] = useState("");
@@ -32,7 +35,7 @@ export default function HomePage() {
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
   const [initialized, setInitialized] = useState(false);
-  const {properties,isLoading,error} = usePropertiesHook();
+  const { properties, isLoading, error } = usePropertiesHook();
 
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -41,17 +44,17 @@ export default function HomePage() {
   useEffect(() => {
     if (initialized) return;
     setInitialized(true);
-    
+
     const saved = localStorage.getItem("savedBotMessages");
     if (saved) setSavedMessages(JSON.parse(saved));
-    
+
     const stored = localStorage.getItem("chatSessions");
     let parsed: ChatSession[] = [];
     if (stored) {
       parsed = JSON.parse(stored);
       setSessions(parsed);
     }
-    
+
     const sId = searchParams.get("sessionId");
     if (sId && parsed.length > 0) {
       const found = parsed.find((s) => s.id === sId);
@@ -95,7 +98,7 @@ export default function HomePage() {
     setSidebarOpen(false);
     setShowMainContent(true);
   };
-  
+
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
   const handleHistoryChats = () => router.push("/chatHistoryPage");
@@ -113,12 +116,12 @@ export default function HomePage() {
     setShowCards(true);
   };
 
-  const sendMessage = (text: string) => {
+  const sendMessage = async (text: string) => {
     if (!text.trim() || !currentSession) return;
     setShowCards(false);
 
     const userMsg: ChatMessage = {
-      sender: "user",
+      sender: "usuario",
       type: "text",
       content: `<p>${text}</p>`,
     };
@@ -129,6 +132,42 @@ export default function HomePage() {
     });
     setMessage("");
 
+    try {
+      if (!currentSession.apiChatId && user?.id) {
+        console.log("userID ", user?.id);
+        const apiId = await createChatService(user?.id);
+        setCurrentSession(prev => prev && ({ ...prev, apiChatId: apiId }));
+        console.log("apiID ", apiId);
+      }
+      if (currentSession.apiChatId) {
+        const saved = await addMessageService(
+          currentSession.apiChatId!,
+          text,
+          "usuario"
+        );
+        setCurrentSession(prev => {
+          if (!prev) return prev;
+          // elimina el último userMsg y añade el real con id
+          const msgs = prev.messages.slice(0, -1);
+          return {
+            ...prev,
+            messages: [
+              ...msgs,
+              {
+                id: saved.id,
+                sender: saved.tipo,
+                type: "text",
+                content: `<p>${saved.contenido}</p>`,
+              },
+            ],
+          };
+        });
+
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert("Error al enviar mensaje: " + e.message);
+    }
     setTimeout(() => {
       const analyzingMsg: ChatMessage = {
         sender: "bot",
@@ -256,12 +295,11 @@ export default function HomePage() {
         <ChatWindow
           messages={currentSession?.messages || []}
           savedMessages={savedMessages}
-          chatRef={chatRef} 
+          chatRef={chatRef}
           onSaveBotMessage={handleSaveBotMessage}
         />
       </div>
 
-      <ChatInput message={message} onMessageChange={setMessage} onSend={handleSend} />
-    </div>
+      <ChatInput message={message} onMessageChange={setMessage} onSend={() => sendMessage(message)} />    </div>
   );
 }
