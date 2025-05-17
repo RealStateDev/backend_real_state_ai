@@ -2,15 +2,17 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
-import { FiMenu, FiLogOut } from "react-icons/fi";
+import { FiMenu, FiLogOut, FiTrash2 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { BsPersonFill } from "react-icons/bs";
 import Sidebar from "@/components/ui/containers/Sidebar";
 import { useUser } from "@/contexts/userContext";
+import deleteChat from "@/services/deleteChat";
 
 // Repite la misma interfaz
 interface ChatSession {
   id: string;
+  apiChatId?: number;
   title: string;
   date: string;
   messages: any[];
@@ -25,7 +27,6 @@ export default function ChatHistoryPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-
   const router = useRouter();
 
   // Al montar, leemos userName y chatSessions
@@ -67,6 +68,28 @@ export default function ChatHistoryPage() {
     setSidebarOpen(false);
     setShowMainContent
   };
+  const handleDelete = async (localId: string) => {
+    // 1) Buscamos la sesión
+    const session = sessions.find(s => s.id === localId);
+    if (!session) return;
+
+    try {
+      // 2) Si existe apiChatId, llamamos al DELETE en el backend
+      if (session.apiChatId) {
+        await deleteChat(session.apiChatId);
+      } else {
+        console.warn("Sesión sin apiChatId, sólo la eliminamos localmente");
+      }
+
+      // 3) Filtramos por localId para quitarla de la UI
+      const updated = sessions.filter(s => s.id !== localId);
+      setSessions(updated);
+      localStorage.setItem("chatSessions", JSON.stringify(updated));
+    } catch (error: any) {
+      console.error("Error eliminando chat:", error.message);
+    }
+  };
+
   const handleLogout = () => router.push("/loginPage");
   const handleGoToSaved = () => router.push("/savedPage");
   const handleGoHome = () => router.push("/homePage");
@@ -135,13 +158,21 @@ export default function ChatHistoryPage() {
             ) : (
               <ul className="space-y-4">
                 {sessions.map((session) => (
-                  <li key={session.id} className="bg-white p-4 rounded-lg border shadow-sm">
+                  <li key={session.id} className="relative bg-white p-4 rounded-lg border shadow-sm">
+                    {/* Botón de eliminar */}
+                    <button
+                      onClick={() => handleDelete(session.id)}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                      aria-label="Eliminar chat"
+                    >
+                      <FiTrash2 />
+                    </button>
+
                     <h2 className="font-semibold">
                       {session.title || "Chat sin título"}
                     </h2>
                     <p className="text-sm text-gray-500">
-                      {new Date(session.date).toLocaleString()} –{" "}
-                      {session.messages.length} mensajes
+                      {new Date(session.date).toLocaleString()} – {session.messages.length} mensajes
                     </p>
                     <button
                       onClick={() => resumeSession(session.id)}
