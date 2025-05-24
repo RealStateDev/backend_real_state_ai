@@ -5,6 +5,7 @@ export type Inputs = {
   email: string;
   password: string;
   birthdate: string;
+  genero: string;
 };
 
 export interface InputTextCom extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -54,6 +55,7 @@ export interface Usertype {
   password: string;
   fecha_nacimiento?: string;
   age?: number;
+  genero?: string;
 }
 
 export interface PropertyListing {
@@ -86,6 +88,7 @@ export interface PropertyListing {
   currency: string;
   ciudad?: string;
   image_url?: string;
+  trans_type?: string;
 }
 
 export interface Favorite {

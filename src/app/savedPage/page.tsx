@@ -180,7 +180,7 @@ export default function SavedPage() {
                           </p>
                           <p>
                             <strong>🏷️ Tipo de Operación:</strong>{" "}
-                            Alquiler
+                            {fav.propiedades.trans_type ? fav.propiedades.trans_type : 'No especificado'} 
                           </p>
                           <a
                             href={`/mapPage?lat=${fav.propiedades.latitud}&lng=${fav.propiedades.longitud}`}

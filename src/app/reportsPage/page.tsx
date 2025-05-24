@@ -31,12 +31,10 @@ export default function ReportsPage() {
   const userName = user?.nombre ?? '';
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Pie fijo (Alquiler vs Compra)
-  const operationData: ChartData<'pie', number[], string> = {
-    labels: ['Alquiler', 'Compra'],
-    datasets: [{ data: [60, 40], backgroundColor: ['#155dfc', '#2563eb'] }]
-  };
-
+  const [operationData, setOperationData] = useState<ChartData<'pie', number[], string>>({
+    labels: [],
+    datasets: [{ data: [], backgroundColor: [] }]
+  });
   // Estados para datos dinámicos
   const [zoneData, setZoneData] = useState<ChartData<'bar', number[], string>>({
     labels: [],
@@ -46,6 +44,12 @@ export default function ReportsPage() {
     labels: [],
     datasets: [{ label: 'Tipos', data: [], backgroundColor: [] }]
   });
+
+  const [genderData, setGenderData] = useState<ChartData<'bar', number[], string>>({
+    labels: [],
+    datasets: [{ label: 'Género', data: [], backgroundColor: [] }]
+  });
+
   const [ageData, setAgeData] = useState<ChartData<'bar', number[], string>>({
     labels: [],
     datasets: [{ label: 'Edad', data: [], backgroundColor: [] }]
@@ -93,19 +97,33 @@ export default function ReportsPage() {
         const favs = resp?.favoritosList ?? [];
 
         // Acumuladores
+        const operationCounts: Record<string, number> = {};
         const zoneCounts: Record<string, number> = {};
         const critCounts: Record<string, number> = {};
+        const genderCounts: Record<string, number> = {};
         const ageList: number[] = [];
 
         favs.forEach((f: any) => {
+
+          const op = f.propiedades.trans_type;
+          operationCounts[op] = (operationCounts[op] || 0) + 1;
+
           const zona = f.propiedades.zona;
           zoneCounts[zona] = (zoneCounts[zona] || 0) + 1;
 
           const tipo = f.propiedades.tipo_propiedad;
           critCounts[tipo] = (critCounts[tipo] || 0) + 1;
 
+          const gender = f.usuarios.genero ?? 'Sin especificar';
+          genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+
           ageList.push(calculateAge(f.usuarios.fecha_nacimiento));
         });
+
+        //Operacion
+        const opLabels = Object.keys(operationCounts);
+        const opValues = opLabels.map(l => operationCounts[l]);
+        const opColors = opLabels.map((_, i) => baseColors[i % baseColors.length]);
 
         // Zonas
         const zoneLabels = Object.keys(zoneCounts);
@@ -117,13 +135,22 @@ export default function ReportsPage() {
         const critValues = critLabels.map(c => critCounts[c]);
         const critColors = critLabels.map((_, i) => baseColors[i % baseColors.length]);
 
-        // Edades (simple histograma por edad exacta; si quieres rangos, agrúpalas aquí)
+        // Edades (simple histograma por edad exacta)
         const ageLabels = ageList.map(a => `${a} años`);
         const ageColors = ageList.map((_, i) => baseColors[i % baseColors.length]);
 
+        // Genero 
+        const genderLabels = Object.keys(genderCounts);
+        const genderValues = genderLabels.map(label => genderCounts[label]);
+        const genderColors = genderLabels.map((_, idx) => baseColors[idx % baseColors.length]);
+
+        setOperationData({ labels: opLabels, datasets: [{ data: opValues, backgroundColor: opColors }] });
         setZoneData({ labels: zoneLabels, datasets: [{ label: 'Zonas', data: zoneValues, backgroundColor: zoneColors }] });
         setCriteriaData({ labels: critLabels, datasets: [{ label: 'Tipos', data: critValues, backgroundColor: critColors }] });
         setAgeData({ labels: ageLabels, datasets: [{ label: 'Edad', data: ageList, backgroundColor: ageColors }] });
+        setGenderData({
+          labels: genderLabels, datasets: [{ label: 'Género', data: genderValues, backgroundColor: genderColors }]
+        });
       } catch (e) {
         console.error('Error cargando datos dinámicos:', e);
       }
@@ -156,7 +183,7 @@ export default function ReportsPage() {
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div className="w-64 bg-white p-6 border-r border-gray-200">
-          <Sidebar
+            <Sidebar
               userName={userName}
               onNewChat={() => nav('/homePage')}
               onSavedClick={() => nav('/savedPage')}
@@ -211,6 +238,14 @@ export default function ReportsPage() {
                 <h2 className="text-xl font-semibold">Búsquedas por edad</h2>
                 <div className="flex-1">
                   <Bar data={ageData} options={barOptions} />
+                </div>
+              </div>
+
+              {/* Búsquedas por género */}
+              <div className="bg-white p-6 rounded shadow h-64 flex flex-col justify-between">
+                <h2 className="text-xl font-semibold">Búsquedas por género</h2>
+                <div className="flex-1">
+                  <Bar data={genderData} options={barOptions} />
                 </div>
               </div>
             </div>

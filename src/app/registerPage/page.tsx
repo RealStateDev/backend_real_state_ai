@@ -10,12 +10,12 @@ import InputPassCom from "@/components/ui/commons/InputPassCom";
 import { Usertype } from "@/types/generalTypes";
 import { registeruserService } from "@/services/registeruserService";
 
-// Usaremos directamente Usertype, que ya contiene birthdate?: string
+// Usaremos directamente Usertype, que ya contiene birthdate?: string y genero?: string
 export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Formulario tipado con Usertype (name -> nombre, email, password, birthdate)
+  // Formulario tipado con Usertype (nombre, email, password, fecha_nacimiento, genero)
   const {
     register,
     handleSubmit,
@@ -25,12 +25,14 @@ export default function RegisterPage() {
   const onSubmit: SubmitHandler<Usertype> = async (data) => {
     setIsLoading(true);
     try {
+      console.log("dataRegister ", data);
       // Llamamos al servicio pasando exactamente un Usertype
       await registeruserService({
         nombre: data.nombre!,
         email: data.email,
         password: data.password,
         fecha_nacimiento: data.fecha_nacimiento,
+        genero: data.genero,
       });
       setTimeout(() => {
         localStorage.setItem("userName", data.nombre!);
@@ -38,10 +40,10 @@ export default function RegisterPage() {
       }, 1000);
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
     }
   };
 
-  
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
@@ -55,7 +57,7 @@ export default function RegisterPage() {
 
         {/* Formulario */}
         <form onSubmit={handleSubmit(onSubmit)}>
-          {/* Nombre (nombre en Usertype) */}
+          {/* Nombre */}
           <InputTextCom
             id="nombre"
             labelText="Nombre"
@@ -64,7 +66,7 @@ export default function RegisterPage() {
             {...register("nombre", { required: "Este campo es obligatorio" })}
           />
           {errors.nombre && (
-            <p className="text-red-500 text-sm mt-1">{errors.nombre.message}</p>
+            <p className="text-red-500 text-sm mt-1 mb-4">{errors.nombre.message}</p>
           )}
 
           {/* Email */}
@@ -82,7 +84,7 @@ export default function RegisterPage() {
             })}
           />
           {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            <p className="text-red-500 text-sm mt-1 mb-4">{errors.email.message}</p>
           )}
 
           {/* Fecha de nacimiento */}
@@ -93,8 +95,27 @@ export default function RegisterPage() {
             {...register("fecha_nacimiento", { required: "Este campo es obligatorio" })}
           />
           {errors.fecha_nacimiento && (
-            <p className="text-red-500 text-sm mt-1">{errors.fecha_nacimiento.message}</p>
+            <p className="text-red-500 text-sm mt-1 mb-4">{errors.fecha_nacimiento.message}</p>
           )}
+
+          {/* Género */}
+          <div className="mt-4 mb-6">
+            <label htmlFor="genero" className="block text-sm font-medium text-gray-700">
+              Género
+            </label>
+            <select
+              id="genero"
+              {...register("genero", { required: "Este campo es obligatorio" })}
+              className="mt-1 block w-full px-3 py-2 text-sm leading-tight rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            >
+              <option value="">Seleccione género</option>
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+            </select>
+            {errors.genero && (
+              <p className="text-red-500 text-sm mt-1">{errors.genero.message}</p>
+            )}
+          </div>
 
           {/* Contraseña */}
           <InputPassCom
@@ -104,14 +125,14 @@ export default function RegisterPage() {
               required: "Este campo es obligatorio",
               pattern: {
                 value:
-                  /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
+                  /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,                
                 message:
                   "Debe tener 8+ caracteres, una mayúscula, un número y un símbolo",
               },
             })}
           />
           {errors.password && (
-            <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+            <p className="text-red-500 text-sm mt-1 mb-4">{errors.password.message}</p>
           )}
 
           <button
@@ -123,7 +144,7 @@ export default function RegisterPage() {
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          ¿Ya tienes una cuenta?{" "}
+          ¿Ya tienes una cuenta?{' '}
           <Link href="/loginPage" className="text-blue-600 hover:underline">
             Inicia sesión
           </Link>
