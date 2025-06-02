@@ -13,7 +13,7 @@ import usePropertiesHook from "@/hooks/usePropertiesHook";
 import useFavoriteHook from "@/hooks/useFavoriteById";
 import createChatService from "@/services/createChatService";
 import addMessageService from "@/services/addMessageService";
-
+import BackdropCus from "@/components/ui/commons/BackdropCus";
 interface ChatSession {
   id: string;
   apiChatId?: number;
@@ -221,7 +221,14 @@ export default function HomePage() {
   ];
 
   // Si no hay userName, no se renderiza el contenido
-  if (!userName) return null;
+if (!userName) {
+  return (
+    <div className="h-screen w-screen">
+      <BackdropCus color="#155dfc" open={true} />
+    </div>
+  );
+}
+
 
   return (
     <div className="h-screen w-screen overflow-hidden flex">

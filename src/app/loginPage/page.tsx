@@ -10,6 +10,7 @@ import InputTextCom from "@/components/ui/commons/InputTextCom";
 import InputPassCom from "@/components/ui/commons/InputPassCom";
 import loginUserClientService from "@/services/loginUserClientService";
 
+
 type Inputs = {
   email: string;
   password: string;
@@ -36,8 +37,9 @@ export default function LoginPage() {
         email: data.email,
         password: data.password,
       });
-
+      
       router.push("/homePage");
+      setIsLoading(false);
     } catch (error: any) {
       setFormError(error.message || "Credenciales incorrectas");
     } finally {
