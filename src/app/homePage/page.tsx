@@ -86,8 +86,8 @@ export default function HomePage() {
   const startNewSession = async () => {
     if (!userId) return;
     try {
-      const res = await createChatService(userId);
-      const session = convertChat({ ...res.data, mensajes: [] });
+      const chat = await createChatService(userId);
+      const session = convertChat({ ...chat, mensajes: [] });
       setCurrentSession(session);
       setSessions((prev) => [...prev, session]);
       setShowCards(true);
@@ -97,7 +97,23 @@ export default function HomePage() {
   };
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || !currentSession) return;
+    if (!text.trim()) return;
+
+    // Si no existe una sesión activa, creamos una nueva
+    let session = currentSession;
+    if (!session) {
+      if (!userId) return;
+      try {
+        const chat = await createChatService(userId);
+        session = convertChat({ ...chat, mensajes: [] });
+        setCurrentSession(session);
+        setSessions((prev) => [...prev, session!]);
+      } catch (err) {
+        console.error("Error creando chat:", err);
+        return;
+      }
+    }
+
     setShowCards(false);
 
     // Mensaje optimista
@@ -110,18 +126,18 @@ export default function HomePage() {
     setMessage("");
 
     try {
-      const saved = await addMessageService(currentSession.apiChatId, text, "usuario");
+      const saved = await addMessageService(session.apiChatId, text, "usuario");
       replaceLast(saved);
 
       const analyzing = await addMessageService(
-        currentSession.apiChatId,
+        session.apiChatId,
         "Estoy analizando tu consulta...",
         "bot"
       );
       appendBot(analyzing, "Estoy analizando tu consulta...");
 
       const recommended = await addMessageService(
-        currentSession.apiChatId,
+        session.apiChatId,
         "Propiedades recomendadas...",
         "bot"
       );
