@@ -27,6 +27,7 @@ export interface ChatMessage {
   type?: "text" | "recommendation";
   content: string;
   items?: { title: string; link: string }[];
+  fecha?: string
 }
 
 export interface ChatWindowProps {

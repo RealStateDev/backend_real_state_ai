@@ -1,90 +1,65 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { CiCirclePlus, CiFolderOn, CiSearch, CiHome, CiChat1 } from "react-icons/ci";
-import { FiMenu, FiLogOut, FiTrash2 } from "react-icons/fi";
+import { FiMenu, FiTrash2 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { BsPersonFill } from "react-icons/bs";
 import Sidebar from "@/components/ui/containers/Sidebar";
 import { useUser } from "@/contexts/userContext";
 import deleteChat from "@/services/deleteChat";
-
-// Repite la misma interfaz
-interface ChatSession {
-  id: string;
-  apiChatId?: number;
-  title: string;
-  date: string;
-  messages: any[];
-}
+import getChatByUserId from "@/services/getChatByUserId";
 
 export default function ChatHistoryPage() {
   const { user } = useUser();
-  const userName = user?.nombre || null; // Puede ser string o null
+  const userName = user?.nombre || null;
+  const userId = user?.id;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMainContent, setShowMainContent] = useState(true);
-  const [showCards, setShowCards] = useState(true);
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+  const [sessions, setSessions] = useState<any[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Al montar, leemos userName y chatSessions
+  // Al montar: obtener sesiones desde backend
   useEffect(() => {
-    /*const storedName = localStorage.getItem("userName");
-    if (storedName) setUserName(storedName);*/
-
-    const stored = localStorage.getItem("chatSessions");
-    if (stored) {
-      const parsed: ChatSession[] = JSON.parse(stored);
-      setSessions(parsed);
-    }
-  }, []);
+    const fetchChats = async () => {
+      if (!userId) return;
+      try {
+        const res = await getChatByUserId(userId);
+        if (res.code === 1 && res.chatsList) {
+          setSessions(res.chatsList);
+        }
+      } catch (error) {
+        console.error("Error cargando historial de chats:", error);
+      }
+    };
+    fetchChats();
+  }, [userId]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   }, [sessions]);
-  const startNewSession = () => {
-    const newSession: ChatSession = {
-      id: String(Date.now()),
-      title: "Chat " + new Date().toLocaleString(),
-      date: new Date().toISOString(),
-      messages: [],
-    };
-    setCurrentSession(newSession);
-    setShowCards(true);
-    router.push("/homePage");
-  };
+
+  const startNewSession = () => router.push("/homePage");
+
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);
     setShowMainContent(sidebarOpen);
   };
+
   const handleSidebarOptionClick = () => {
     setSidebarOpen(false);
-    setShowMainContent
+    setShowMainContent(true);
   };
-  const handleDelete = async (localId: string) => {
-    // 1) Buscamos la sesión
-    const session = sessions.find(s => s.id === localId);
-    if (!session) return;
 
+  const handleDelete = async (chatId: number) => {
     try {
-      // 2) Si existe apiChatId, llamamos al DELETE en el backend
-      if (session.apiChatId) {
-        await deleteChat(session.apiChatId);
-      } else {
-        console.warn("Sesión sin apiChatId, sólo la eliminamos localmente");
-      }
-
-      // 3) Filtramos por localId para quitarla de la UI
-      const updated = sessions.filter(s => s.id !== localId);
+      await deleteChat(chatId);
+      const updated = sessions.filter(s => s.id !== chatId);
       setSessions(updated);
-      localStorage.setItem("chatSessions", JSON.stringify(updated));
     } catch (error: any) {
       console.error("Error eliminando chat:", error.message);
     }
@@ -97,12 +72,10 @@ export default function ChatHistoryPage() {
   const handleAnalytics = () => router.push("/reportsPage");
   const suscriptionsView = () => router.push("/suscriptionsPage");
 
-  // Reanudar la sesión => push a home con ?sessionId
-  const resumeSession = (id: string) => {
-    router.push(`/homePage?sessionId=${id}`);
+  const resumeSession = (chatId: number) => {
+    router.push(`/homePage?sessionId=${chatId}`);
   };
 
-  // Si no hay userName, no se renderiza el contenido
   if (!userName) return null;
 
   return (
@@ -142,24 +115,19 @@ export default function ChatHistoryPage() {
 
       {/* CONTENIDO PRINCIPAL */}
       <div className="flex-1 relative">
-        {/* Botón hamburguesa en mobile */}
-        <button
-          onClick={handleMenuToggle}
-          className="md:hidden absolute top-4 left-4 z-50"
-        >
+        <button onClick={handleMenuToggle} className="md:hidden absolute top-4 left-4 z-50">
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
         {showMainContent && (
-
-          <main ref={scrollRef} className="px-6 py-10 max-w-3xl mx-auto overflow-y-auto" style={{ maxHeight: "80vh" }}>           <h1 className="text-3xl font-bold mb-8">Historial de chats</h1>
+          <main ref={scrollRef} className="px-6 py-10 max-w-3xl mx-auto overflow-y-auto" style={{ maxHeight: "80vh" }}>
+            <h1 className="text-3xl font-bold mb-8">Historial de chats</h1>
             {sessions.length === 0 ? (
               <p className="text-gray-500">No hay chats guardados.</p>
             ) : (
               <ul className="space-y-4">
                 {sessions.map((session) => (
                   <li key={session.id} className="relative bg-white p-4 rounded-lg border shadow-sm">
-                    {/* Botón de eliminar */}
                     <button
                       onClick={() => handleDelete(session.id)}
                       className="absolute top-2 right-2 text-red-500 hover:text-red-700"
@@ -169,10 +137,10 @@ export default function ChatHistoryPage() {
                     </button>
 
                     <h2 className="font-semibold">
-                      {session.title || "Chat sin título"}
+                      Chat #{session.id}
                     </h2>
                     <p className="text-sm text-gray-500">
-                      {new Date(session.date).toLocaleString()} – {session.messages.length} mensajes
+                      {new Date(session.fecha).toLocaleString()} – {session.mensajes.length} mensajes
                     </p>
                     <button
                       onClick={() => resumeSession(session.id)}
