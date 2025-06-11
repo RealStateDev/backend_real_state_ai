@@ -33,8 +33,20 @@ export interface ChatMessage {
 export interface ChatWindowProps {
   messages: ChatMessage[];
   savedMessages: { title: string; link: string }[];
-  chatRef: React.RefObject<HTMLDivElement | null>; 
+  chatRef: React.RefObject<HTMLDivElement | null>;
   onSaveBotMessage: (item: { title: string; link: string }) => void;
+}
+
+export interface ChatSectionProps {
+  userName: string;
+  showCards: boolean;
+  messages: ChatMessage[];
+  savedMessages: { title: string; link: string }[];
+  chatRef: React.RefObject<HTMLDivElement | null>;
+  message: string;
+  onMessageChange: (msg: string) => void;
+  onSend: () => void;
+  onQuickOptionSelect: (msg: string) => void;
 }
 
 

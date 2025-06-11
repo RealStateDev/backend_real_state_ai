@@ -4,8 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiMenu } from "react-icons/fi";
 import { useRouter, useSearchParams } from "next/navigation";
 import Sidebar from "@/components/ui/containers/Sidebar";
-import ChatWindow from "@/components/ui/containers/ChatWindow";
-import ChatInput from "@/components/ui/containers/ChatInput";
+import ChatSection from "@/components/ui/containers/ChatSection";
 import { ChatMessage } from "@/types/generalTypes";
 import "./style.css";
 import { useUser } from "@/contexts/userContext";
@@ -209,13 +208,6 @@ export default function HomePage() {
         : p
     );
 
-  /* ---------- Quick options ---------- */
-  const quickOptions = [
-    { title: "Ayudame a buscar una casa", detail: "En Asunción para alquiler" },
-    { title: "Quiero comprar un departamento", detail: "En zona Villamorra o Carmelitas" },
-    { title: "¿Qué propiedades hay disponibles?", detail: "En Lambaré con 3 habitaciones" },
-    { title: "Busco una oficina para alquilar", detail: "Con estacionamiento incluido" },
-  ];
 
   /* ---------- Render ---------- */
   if (!userName)
@@ -266,39 +258,18 @@ export default function HomePage() {
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
-        {showCards && (
-          <div className="shrink-0">
-            <main className="flex flex-col items-center text-center px-6 pt-10">
-              <div className="max-w-2xl">
-                <h1 className="text-2xl font-semibold">👋 ¡Hola {userName}!</h1>
-                <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
-                <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
-                  {quickOptions.map((opt, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-                      onClick={() => sendMessage(`${opt.title} ${opt.detail}`)}
-                    >
-                      <h3 className="font-semibold text-gray-800">{opt.title}</h3>
-                      <p className="text-sm text-gray-500">{opt.detail}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </main>
-          </div>
-        )}
-
-        <ChatWindow
+        <ChatSection
+          userName={userName}
+          showCards={showCards}
           messages={currentSession?.messages || []}
           savedMessages={savedMessages}
           chatRef={chatRef}
-          onSaveBotMessage={() => {}}
+          message={message}
+          onMessageChange={setMessage}
+          onSend={() => sendMessage(message)}
+          onQuickOptionSelect={(txt) => sendMessage(txt)}
         />
       </div>
-
-      <ChatInput message={message} onMessageChange={setMessage} onSend={() => sendMessage(message)} />
     </div>
   );
 }
