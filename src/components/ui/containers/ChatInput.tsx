@@ -19,7 +19,7 @@ export default function ChatInput({
   };
 
   return (
-    <div className="fixed bottom-0 inset-x-0 px-6 py-4 bg-white border-t border-gray-200 z-10">
+    <div className="absolute bottom-0 inset-x-0 px-6 py-4 bg-white border-t border-gray-200 z-10">
       <div className="max-w-2xl mx-auto flex items-center gap-2">
         <textarea
           ref={textareaRef}
