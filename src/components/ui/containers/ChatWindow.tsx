@@ -30,7 +30,7 @@ export default function ChatWindow({
                 msg.sender === "usuario" ? "justify-end" : "justify-start"
               } mb-2`}
             >
-              <div className="relative max-w-md">
+              <div className="max-w-md">
                 <div
                   className={`px-4 py-2 rounded-lg text-sm leading-relaxed whitespace-pre-wrap ${
                     msg.sender === "usuario"
@@ -41,9 +41,9 @@ export default function ChatWindow({
                 />
                 {msg.fecha && (
                   <div
-                    className={`absolute text-xs ${
-                      msg.sender === "usuario" ? "right-1" : "left-1"
-                    } bottom-1 text-gray-400`}
+                    className={`text-xs mt-1 ${
+                      msg.sender === "usuario" ? "text-right" : "text-left"
+                    } text-gray-400`}
                   >
                     {formatHora(msg.fecha)}
                   </div>
@@ -56,7 +56,7 @@ export default function ChatWindow({
         if (msg.type === "recommendation" && msg.items) {
           return (
             <div key={index} className="flex justify-start mb-2">
-              <div className="relative bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm leading-relaxed max-w-md">
+              <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm leading-relaxed max-w-md">
                 <p>
                   <strong>Bot: </strong>
                   {msg.content}
@@ -95,7 +95,7 @@ export default function ChatWindow({
                   })}
                 </ul>
                 {msg.fecha && (
-                  <div className="absolute left-1 bottom-1 text-xs text-gray-400">
+                  <div className="text-xs mt-1 text-left text-gray-400">
                     {formatHora(msg.fecha)}
                   </div>
                 )}

@@ -48,12 +48,16 @@ export default function HomePage() {
         const sId = searchParams.get("sessionId");
         const found = chatsList?.find((c: any) => c.id === Number(sId));
         if (found) {
-          setCurrentSession(convertChat(found));
+          const session = convertChat(found);
+          setCurrentSession(session);
+          if (session.messages.length > 0) setShowCards(false);
           return;
         }
 
         if (chatsList.length > 0) {
-          setCurrentSession(convertChat(chatsList[chatsList.length - 1]));
+          const last = convertChat(chatsList[chatsList.length - 1]);
+          setCurrentSession(last);
+          if (last.messages.length > 0) setShowCards(false);
         }
       } catch (err) {
         console.error("Error al cargar chats:", err);
