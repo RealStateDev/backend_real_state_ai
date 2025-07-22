@@ -21,14 +21,37 @@ export interface ChatInputProps {
 }
 
 
-export interface ChatMessage {
+/*export interface ChatMessage {
   id?: number;
   sender: "usuario" | "bot";
   type?: "text" | "recommendation";
   content: string;
   items?: { title: string; link: string }[];
   fecha?: string
+}*/
+export interface ChatMessage {
+  id?: number;
+  sender: "usuario" | "bot";
+  type?: "text" | "recommendation";
+  content: string;
+  items?: { title: string; link: string }[];
+  properties?: {
+    id: number;
+    titulo: string;
+    precio: number;
+    ciudad?: string;
+    zona?: string;
+    tipo_propiedad?: string;
+    trans_type?: string;
+    dormitorios?: number;
+    banos?: number;
+    garajes?: number;
+    url?: string;
+    image_url?: string;
+  }[];        // <-- ESTA LÍNEA ES CLAVE
+  fecha?: string;
 }
+
 
 export interface ChatWindowProps {
   messages: ChatMessage[];

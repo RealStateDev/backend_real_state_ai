@@ -9,9 +9,9 @@ import { ChatMessage } from "@/types/generalTypes";
 import "./style.css";
 import { useUser } from "@/contexts/userContext";
 import createChatService from "@/services/createChatService";
-import addMessageService from "@/services/addMessageService";
 import getChatByUserId from "@/services/getChatByUserId";
 import BackdropCus from "@/components/ui/commons/BackdropCus";
+import sendChatAndGetAnswerService from "@/services/sendChatAndGetAnswerService";
 
 interface ChatSession {
   id: string;
@@ -30,8 +30,12 @@ export default function HomePage() {
   const [message, setMessage] = useState("");
   const [showCards, setShowCards] = useState(true);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
-  const [savedMessages, setSavedMessages] = useState<{ title: string; link: string }[]>([]);
+  const [currentSession, setCurrentSession] = useState<ChatSession | null>(
+    null
+  );
+  const [savedMessages, setSavedMessages] = useState<
+    { title: string; link: string }[]
+  >([]);
 
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -68,7 +72,10 @@ export default function HomePage() {
 
   /* ---------- Scroll auto ---------- */
   useEffect(() => {
-    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
+    chatRef.current?.scrollTo({
+      top: chatRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [currentSession?.messages]);
 
   /* ---------- Helpers ---------- */
@@ -119,99 +126,117 @@ export default function HomePage() {
 
     setShowCards(false);
 
-    // Mensaje optimista
-    const tempMsg: ChatMessage = {
+    // Mensaje optimista del usuario
+    const tempUserMsg: ChatMessage = {
       sender: "usuario",
       type: "text",
       content: `<p>${text}</p>`,
     };
-    setCurrentSession((p) => p && { ...p, messages: [...p.messages, tempMsg] });
+
+    // Mensaje "pensando" del bot
+    const tempThinking: ChatMessage = {
+      sender: "bot",
+      type: "text",
+      content: `<p><em>Pensando...</em></p>`,
+    };
+
+    setCurrentSession((p) =>
+      p
+        ? {
+            ...p,
+            messages: [...p.messages, tempUserMsg, tempThinking],
+          }
+        : p
+    );
     setMessage("");
 
     try {
-      const saved = await addMessageService(session.apiChatId, text, "usuario");
-      replaceLast(saved);
+      const data = await sendChatAndGetAnswerService(session.apiChatId, text);
 
-      const analyzing = await addMessageService(
-        session.apiChatId,
-        "Estoy analizando tu consulta...",
-        "bot"
+      // Reemplazar los dos últimos mensajes temporales por los reales
+      setCurrentSession((p) =>
+        p
+          ? {
+              ...p,
+              messages: [
+                ...p.messages.slice(0, -2),
+                {
+                  id: data.userMessage.id,
+                  sender: "usuario",
+                  type: "text",
+                  content: `<p>${data.userMessage.contenido}</p>`,
+                  fecha: data.userMessage.fecha,
+                },
+                {
+                  id: data.botMessage.id,
+                  sender: "bot",
+                  type: "text",
+                  content: `<p>${data.botMessage.contenido}</p>`,
+                  fecha: data.botMessage.fecha,
+                },
+              ],
+            }
+          : p
       );
-      appendBot(analyzing, "Estoy analizando tu consulta...");
 
-      const recommended = await addMessageService(
-        session.apiChatId,
-        "Propiedades recomendadas...",
-        "bot"
-      );
-      appendReco(recommended);
+      // >>> NUEVO: insertar recomendaciones si viene propertiesPayload
+      if (
+        data.propertiesPayload &&
+        Array.isArray(data.propertiesPayload) &&
+        data.propertiesPayload.length > 0
+      ) {
+        const props = data.propertiesPayload;
+        setCurrentSession((p) =>
+          p
+            ? {
+                ...p,
+                messages: [
+                  ...p.messages,
+                  {
+                    sender: "bot",
+                    type: "recommendation",
+                    content: "Propiedades recomendadas:",
+                    properties: props.map((r: any) => ({
+                      id: r.id,
+                      titulo: r.titulo,
+                      precio: r.precio,
+                      ciudad: r.ciudad,
+                      zona: r.zona,
+                      tipo_propiedad: r.tipo_propiedad,
+                      trans_type: r.trans_type,
+                      dormitorios: r.dormitorios,
+                      banos: r.banos,
+                      garajes: r.garajes,
+                      url: r.url,
+                      image_url: r.image_url,
+                    })),
+                  },
+                ],
+              }
+            : p
+        );
+      }
+      // <<< FIN NUEVO
     } catch (err) {
       console.error("Error enviando mensaje:", err);
+      // Reemplaza el “Pensando...” por un error
+      setCurrentSession((p) =>
+        p
+          ? {
+              ...p,
+              messages: [
+                ...p.messages.slice(0, -1),
+                {
+                  sender: "bot",
+                  type: "text",
+                  content: `<p><strong>Error:</strong> No pude procesar tu mensaje.</p>`,
+                },
+              ],
+            }
+          : p
+      );
     }
   };
-
-  const replaceLast = (saved: any) =>
-    setCurrentSession((p) =>
-      p
-        ? {
-            ...p,
-            messages: [
-              ...p.messages.slice(0, -1),
-              {
-                id: saved.id,
-                sender: "usuario",
-                type: "text",
-                content: `<p>${saved.contenido}</p>`,
-                fecha: saved.fecha,
-              },
-            ],
-          }
-        : p
-    );
-
-  const appendBot = (saved: any, txt: string) =>
-    setCurrentSession((p) =>
-      p
-        ? {
-            ...p,
-            messages: [
-              ...p.messages,
-              {
-                id: saved.id,
-                sender: "bot",
-                type: "text",
-                content: `<p><strong>Bot:</strong> ${txt}</p>`,
-                fecha: saved.fecha,
-              },
-            ],
-          }
-        : p
-    );
-
-  const appendReco = (saved: any) =>
-    setCurrentSession((p) =>
-      p
-        ? {
-            ...p,
-            messages: [
-              ...p.messages,
-              {
-                id: saved.id,
-                sender: "bot",
-                type: "recommendation",
-                content: "Propiedades recomendadas...",
-                items: [
-                  { title: "Propiedad 1", link: "https://example.com/prop1" },
-                  { title: "Propiedad 2", link: "https://example.com/prop2" },
-                  { title: "Propiedad 3", link: "https://example.com/prop3" },
-                ],
-                fecha: saved.fecha,
-              },
-            ],
-          }
-        : p
-    );
-
 
   /* ---------- Render ---------- */
   if (!userName)
@@ -252,13 +277,19 @@ export default function HomePage() {
               suscriptionView={() => router.push("/suscriptionsPage")}
             />
           </div>
-          <div className="flex-1 bg-white/25" onClick={() => setSidebarOpen(false)} />
+          <div
+            className="flex-1 bg-white/25"
+            onClick={() => setSidebarOpen(false)}
+          />
         </div>
       )}
 
       {/* -------- Área de chat -------- */}
       <div className="flex-1 flex flex-col relative">
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden absolute top-4 left-4 z-50">
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="md:hidden absolute top-4 left-4 z-50"
+        >
           <FiMenu className="w-6 h-6 text-gray-700" />
         </button>
 
