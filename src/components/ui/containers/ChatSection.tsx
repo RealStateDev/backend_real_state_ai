@@ -33,6 +33,7 @@ export default function ChatSection({
               <h1 className="text-2xl font-semibold">👋 ¡Hola {userName}!</h1>
               <h2 className="text-4xl font-bold mt-2">¿Qué tipo de propiedad buscás?</h2>
               <p className="text-gray-500 mt-2">Estamos para ayudarte a encontrar tu nuevo hogar.</p>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 text-left">
                 {quickOptions.map((opt, idx) => (
                   <div
