@@ -25,7 +25,7 @@
 }
 
 export default async function sendChatAndGetAnswerService(chatId: number, contenido: string) {
-  const res = await fetch(`http://localhost:5000/api/chats/${chatId}/send`, {
+  const res = await fetch(`http://localhost:4000/api/chats/${chatId}/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ contenido })
@@ -87,7 +87,7 @@ export default async function sendChatAndGetAnswerService(
   chatId: number,
   contenido: string
 ) {
-  const res = await fetch(`http://localhost:5000/api/chats/${chatId}/send`, {
+  const res = await fetch(`http://localhost:4000/api/chats/${chatId}/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ contenido })

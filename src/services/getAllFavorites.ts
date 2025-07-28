@@ -2,7 +2,7 @@
 export default async function getAllFavorites() {
  
   try {
-    const res = await fetch("http://localhost:5000/api/favoritos", {
+    const res = await fetch("http://localhost:4000/api/favoritos", {
         method: "GET",
         headers: { "Content-Type": "application/json" }
       });

@@ -1,7 +1,7 @@
 export default async function deleteChat(id: number) {
 
     try {
-        const res = await fetch(`http://localhost:5000/api/chats/${id}`, {
+        const res = await fetch(`http://localhost:4000/api/chats/${id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         });

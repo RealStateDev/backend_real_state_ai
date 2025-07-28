@@ -2,7 +2,7 @@
 export default async function getChatByUserId(userId: number) {
  
   try {
-    const res = await fetch(`http://localhost:5000/api/chatsByUser/${userId}`, {
+    const res = await fetch(`http://localhost:4000/api/chatsByUser/${userId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" }
       });

@@ -1,7 +1,7 @@
 export default async function deleteFavorite(id:number) {
  
     try {
-      const res = await fetch(`http://localhost:5000/api/favoritos/${id}`, {
+      const res = await fetch(`http://localhost:4000/api/favoritos/${id}`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" }
         });

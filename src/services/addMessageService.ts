@@ -4,7 +4,7 @@ type response = { code: number, message: string, data: any}
 
 export default async function addMessageService(chatId: number, contenido: string, tipo: "usuario" | "bot") {
     try {
-        const res = await fetch(`http://localhost:5000/api/chats/${chatId}/mensajes`, {
+        const res = await fetch(`http://localhost:4000/api/chats/${chatId}/mensajes`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contenido, tipo })

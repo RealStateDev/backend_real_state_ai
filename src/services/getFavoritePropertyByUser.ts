@@ -1,7 +1,7 @@
 export default async function getFavoritePropertyByUser(userId:number) {
  
     try {
-      const res = await fetch(`http://localhost:5000/api/favoritosByUser/${userId}`, {
+      const res = await fetch(`http://localhost:4000/api/favoritosByUser/${userId}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" }
         });

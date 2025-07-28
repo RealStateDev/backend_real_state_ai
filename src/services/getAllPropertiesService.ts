@@ -3,7 +3,7 @@ import { PropertyListing } from "@/types/generalTypes"
 export default async function getAllPropertiesService() {
  
   try {
-    const res = await fetch("http://localhost:5000/api/propiedades", {
+    const res = await fetch("http://localhost:4000/api/propiedades", {
         method: "GET",
         headers: { "Content-Type": "application/json" }
       });

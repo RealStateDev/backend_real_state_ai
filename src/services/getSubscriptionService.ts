@@ -1,7 +1,7 @@
 export default async function getSubscriptionByUser(userId:number) {
  
     try {
-      const res = await fetch(`http://localhost:5000/api/subscripcionByUser/${userId}`, {
+      const res = await fetch(`http://localhost:4000/api/subscripcionByUser/${userId}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" }
         });

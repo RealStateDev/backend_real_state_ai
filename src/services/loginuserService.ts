@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function loginuserService(req: Usertype) {
   try {
-    const resp = await fetch("http://localhost:5000/api/auth/login", {
+    const resp = await fetch("http://localhost:4000/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req),

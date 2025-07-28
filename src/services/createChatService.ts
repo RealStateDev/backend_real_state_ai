@@ -1,6 +1,6 @@
 export default async function createChatService(userId: number) {
   try {
-    const resp = await fetch("http://localhost:5000/api/chats", {
+    const resp = await fetch("http://localhost:4000/api/chats", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ usuario_id: userId }),

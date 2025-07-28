@@ -3,7 +3,7 @@ import { Subscripcion } from "@/types/generalTypes";
 export default async function createSubscription(dataEntry:Subscripcion) {
  
     try {
-      const res = await fetch(`http://localhost:5000/api/subscripcion`, {
+      const res = await fetch(`http://localhost:4000/api/subscripcion`, {
           method: "POST",
           body: JSON.stringify(dataEntry),
           headers: { "Content-Type": "application/json" }
