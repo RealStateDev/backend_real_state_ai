@@ -12,6 +12,7 @@ import createChatService from "@/services/createChatService";
 import getChatByUserId from "@/services/getChatByUserId";
 import BackdropCus from "@/components/ui/commons/BackdropCus";
 import sendChatAndGetAnswerService from "@/services/sendChatAndGetAnswerService";
+import sendIntent from "@/services/sendIntent";
 
 interface ChatSession {
   id: string;
@@ -36,6 +37,8 @@ export default function HomePage() {
   const [savedMessages, setSavedMessages] = useState<
     { title: string; link: string }[]
   >([]);
+  const [pendingIntent, setPendingIntent] = useState(false);
+  const [intentNotice, setIntentNotice] = useState<string | null>(null);
 
   const chatRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -152,6 +155,22 @@ export default function HomePage() {
 
     try {
       const data = await sendChatAndGetAnswerService(session.apiChatId, text);
+      let parsed: any = null;
+      try {
+        parsed = JSON.parse(data.botMessage.contenido);
+      } catch {}
+      if (parsed && parsed.ready) {
+        setPendingIntent(true);
+        try {
+          await sendIntent(parsed);
+          setIntentNotice('Consulta lista/guardada');
+          setTimeout(() => setIntentNotice(null), 3000);
+        } catch (e) {
+          console.error(e);
+          setIntentNotice('Error al enviar la consulta');
+          setTimeout(() => setIntentNotice(null), 3000);
+        }
+      }
 
       // Reemplazar los dos últimos mensajes temporales por los reales
       setCurrentSession((p) =>
@@ -171,7 +190,9 @@ export default function HomePage() {
                   id: data.botMessage.id,
                   sender: "bot",
                   type: "text",
-                  content: `<p>${data.botMessage.contenido}</p>`,
+                  content: parsed && parsed.ready
+                    ? `<p>Consulta lista/guardada</p>`
+                    : `<p>${data.botMessage.contenido}</p>`,
                   fecha: data.botMessage.fecha,
                 },
               ],
@@ -303,6 +324,7 @@ export default function HomePage() {
           onMessageChange={setMessage}
           onSend={() => sendMessage(message)}
           onQuickOptionSelect={(txt) => sendMessage(txt)}
+          intentNotice={intentNotice}
         />
       </div>
     </div>

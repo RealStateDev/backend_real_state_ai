@@ -70,6 +70,7 @@ export interface ChatSectionProps {
   onMessageChange: (msg: string) => void;
   onSend: () => void;
   onQuickOptionSelect: (msg: string) => void;
+  intentNotice?: string | null;
 }
 
 
