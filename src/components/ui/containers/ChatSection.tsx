@@ -15,6 +15,7 @@ export default function ChatSection({
   onMessageChange,
   onSend,
   onQuickOptionSelect,
+  intentNotice,
 }: ChatSectionProps) {
   const quickOptions = [
     { title: "Ayudame a buscar una casa", detail: "En Asunción para alquiler" },
@@ -46,6 +47,12 @@ export default function ChatSection({
               </div>
             </div>
           </main>
+        </div>
+      )}
+
+      {intentNotice && (
+        <div className="bg-green-100 text-green-700 text-sm p-2 text-center">
+          {intentNotice}
         </div>
       )}
 
