@@ -1,5 +1,5 @@
 export default async function sendIntent(intent: any) {
-  const res = await fetch('http://localhost:5000/api/intent', {
+  const res = await fetch('http://localhost:4000/intent', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(intent),
