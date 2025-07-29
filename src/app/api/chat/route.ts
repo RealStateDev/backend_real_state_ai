@@ -3,7 +3,15 @@ import OpenAI from 'openai';
 import { isIntentPayload, IntentPayload } from '@/types/intent';
 import { ChatMessage } from '@/types/generalTypes';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+  baseURL: process.env.SQLCODER_BASE_URL,
+});
+
+const model = process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
+const temperature = process.env.OPENAI_TEMPERATURE
+  ? Number(process.env.OPENAI_TEMPERATURE)
+  : 0.2;
 
 const systemPrompt = `Eres un asistente inmobiliario. Conversa con el usuario para obtener los datos necesarios de su búsqueda de propiedades. Cuando tengas tipo de propiedad, ciudad, trans_type, dormitorios, precio_min y precio_max responde exclusivamente con un JSON minificado del siguiente formato: {"ready":true,"intent":"buscar_propiedad","entidades":{...}}.`;
 
@@ -20,8 +28,9 @@ export async function POST(req: NextRequest) {
     ];
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model,
       messages: openAiMessages,
+      temperature,
     });
 
     const message = completion.choices[0].message.content?.trim() || '';
