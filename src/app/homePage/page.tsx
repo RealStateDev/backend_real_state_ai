@@ -29,7 +29,7 @@ export default function HomePage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [showCards, setShowCards] = useState(true);
+  const [showCards, setShowCards] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(
     null
@@ -103,7 +103,7 @@ export default function HomePage() {
       const session = convertChat({ ...chat, mensajes: [] });
       setCurrentSession(session);
       setSessions((prev) => [...prev, session]);
-      setShowCards(true);
+      setShowCards(false);
     } catch (err) {
       console.error("Error creando chat:", err);
     }
